@@ -164,6 +164,7 @@ export function normalizeTasks(
 ): AgentRunTask[] {
     const defaults = Object.assign({}, ...skills.map((skill) => skill.defaultConfig || {})) as Record<string, unknown>;
     const skillInstructions = skills
+        .filter((skill) => !skill.references || Object.keys(skill.references).length === 0)
         .map((skill) => skill.instructions.trim())
         .filter(Boolean)
         .join("\n\n");

@@ -113,11 +113,13 @@ export function prioritizeAgentPlannerModels<T extends { id: string; capability:
 }
 
 function plannerSkillSummary(skill: AuthSettings["agentSkills"][number]) {
+    const hasReferences = skill.references && Object.keys(skill.references).length > 0;
     return {
         id: skill.id,
         name: skill.name,
-        plannerSummary: skill.plannerSummary || skill.description || skill.instructions,
+        plannerSummary: hasReferences ? skill.instructions : (skill.plannerSummary || skill.description || skill.instructions),
         workspaces: skill.workspaces || ["image"],
+        ...(hasReferences ? { instructions: skill.instructions, references: skill.references } : {}),
     };
 }
 

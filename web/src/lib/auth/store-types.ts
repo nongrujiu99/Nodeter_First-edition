@@ -164,6 +164,7 @@ export type AgentSkill = {
     sourceCommit?: string;
     sourceContentHash?: string;
     license?: string;
+    references?: Record<string, string>;
 };
 
 export type GenerationConcurrencySettings = {

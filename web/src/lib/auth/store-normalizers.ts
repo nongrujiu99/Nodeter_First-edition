@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { formatAccountId, parseAccountId } from "@/lib/account-id";
 import { decryptSecretValue, encryptSecretValue, isEncryptedSecretValue } from "@/lib/server/secret-crypto";
 import { ECOMMERCE_IMAGE_SKILL } from "@/lib/server/agent-skills/ecommerce-image";
+import { ECOMMERCE_FULL_SERVICE_SKILL } from "@/lib/server/agent-skills/ecommerce-full-service";
 import { YANAI_BEAUTY_SKILL } from "@/lib/server/agent-skills/yanai-beauty";
 import { DEFAULT_CREATIVE_SHORTCUT_SKILLS } from "@/lib/server/agent-skills/creative-shortcuts";
 import { deriveLogicalModelsConfig, normalizeDefaultModelsConfig, normalizeLogicalModelsConfig } from "@/lib/model-routing-config";
@@ -263,6 +264,7 @@ export function deriveLogicalModels(channels: SystemModelChannel[]): LogicalMode
 
 export function normalizeAgentSkill(skill: AgentSkill): AgentSkill {
     if (skill.id === ECOMMERCE_IMAGE_SKILL.id && !skill.sourceUrl) return { ...ECOMMERCE_IMAGE_SKILL, keywords: [...ECOMMERCE_IMAGE_SKILL.keywords], workspaces: [...ECOMMERCE_IMAGE_SKILL.workspaces], enabled: skill.enabled !== false };
+    if (skill.id === ECOMMERCE_FULL_SERVICE_SKILL.id) return { ...ECOMMERCE_FULL_SERVICE_SKILL, keywords: [...ECOMMERCE_FULL_SERVICE_SKILL.keywords], workspaces: [...ECOMMERCE_FULL_SERVICE_SKILL.workspaces], references: { ...ECOMMERCE_FULL_SERVICE_SKILL.references }, enabled: skill.enabled !== false };
     const instructions = String(skill.instructions || "")
         .trim()
         .slice(0, 8000);
@@ -319,11 +321,16 @@ export function normalizeAgentSkill(skill: AgentSkill): AgentSkill {
             String(skill.license || "")
                 .trim()
                 .slice(0, 120) || undefined,
+        references:
+            skill.references && typeof skill.references === "object"
+                ? Object.fromEntries(Object.entries(skill.references).map(([k, v]) => [String(k), String(v)]))
+                : undefined,
     };
 }
 
 export function normalizeAgentSkills(skills: AgentSkill[] | undefined) {
     const normalized = Array.isArray(skills) ? skills.map(normalizeAgentSkill).filter((skill) => skill.name && skill.instructions) : [...DEFAULT_SETTINGS.agentSkills];
+    if (!normalized.some((skill) => skill.id === ECOMMERCE_FULL_SERVICE_SKILL.id)) normalized.push({ ...ECOMMERCE_FULL_SERVICE_SKILL, keywords: [...ECOMMERCE_FULL_SERVICE_SKILL.keywords], workspaces: [...ECOMMERCE_FULL_SERVICE_SKILL.workspaces], references: { ...ECOMMERCE_FULL_SERVICE_SKILL.references } });
     if (!normalized.some((skill) => skill.id === YANAI_BEAUTY_SKILL.id)) normalized.push({ ...YANAI_BEAUTY_SKILL, keywords: [...YANAI_BEAUTY_SKILL.keywords], workspaces: [...YANAI_BEAUTY_SKILL.workspaces] });
     for (const skill of DEFAULT_CREATIVE_SHORTCUT_SKILLS) {
         const index = normalized.findIndex((item) => item.id === skill.id);

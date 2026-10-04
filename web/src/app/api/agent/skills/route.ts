@@ -9,6 +9,6 @@ export async function GET(request: Request) {
     const workspace = new URL(request.url).searchParams.get("workspace") || "image";
     const settings = await getAuthSettings();
     const allWorkspaces = workspace === "all" || workspace === "chat";
-    const skills = settings.agentSkills.filter((skill) => skill.enabled && (allWorkspaces || (skill.workspaces || ["image"]).includes(workspace as AgentSkillWorkspace))).map(({ instructions: _instructions, ...skill }) => skill);
+    const skills = settings.agentSkills.filter((skill) => skill.enabled && (allWorkspaces || (skill.workspaces || ["image"]).includes(workspace as AgentSkillWorkspace))).map(({ instructions: _instructions, references: _references, ...skill }) => skill);
     return NextResponse.json({ code: 0, data: { skills }, msg: "OK" });
 }

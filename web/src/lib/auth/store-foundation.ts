@@ -1,4 +1,5 @@
 import { ECOMMERCE_IMAGE_SKILL } from "@/lib/server/agent-skills/ecommerce-image";
+import { ECOMMERCE_FULL_SERVICE_SKILL } from "@/lib/server/agent-skills/ecommerce-full-service";
 import { YANAI_BEAUTY_SKILL } from "@/lib/server/agent-skills/yanai-beauty";
 import { DEFAULT_CREATIVE_SHORTCUT_SKILLS } from "@/lib/server/agent-skills/creative-shortcuts";
 import {
@@ -160,6 +161,7 @@ export const DEFAULT_SETTINGS: AuthSettings = {
     defaultModels: { imageModel: "", videoModel: "", textModel: "", audioModel: "" },
     agentSkills: [
         { ...ECOMMERCE_IMAGE_SKILL, keywords: [...ECOMMERCE_IMAGE_SKILL.keywords], workspaces: [...ECOMMERCE_IMAGE_SKILL.workspaces] },
+        { ...ECOMMERCE_FULL_SERVICE_SKILL, keywords: [...ECOMMERCE_FULL_SERVICE_SKILL.keywords], workspaces: [...ECOMMERCE_FULL_SERVICE_SKILL.workspaces], references: { ...ECOMMERCE_FULL_SERVICE_SKILL.references } },
         { ...YANAI_BEAUTY_SKILL, keywords: [...YANAI_BEAUTY_SKILL.keywords], workspaces: [...YANAI_BEAUTY_SKILL.workspaces] },
         ...DEFAULT_CREATIVE_SHORTCUT_SKILLS.map((skill) => ({ ...skill, keywords: [...skill.keywords], workspaces: [...skill.workspaces] })),
     ],
