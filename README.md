@@ -19,8 +19,6 @@
   <a href="CHANGELOG.md">更新记录</a>
 </p>
 
-![Nodeter 首页](docs/public/screenshots/pages/01-home.webp)
-
 Nodeter 把统一创作 Agent、画布、短剧生产和素材库放在同一套 Next.js 全栈应用中。PostgreSQL 保存账号与创作数据；媒体可写入服务器本地目录或 S3 兼容对象存储；模型密钥只在服务端使用。
 
 ## 核心功能
