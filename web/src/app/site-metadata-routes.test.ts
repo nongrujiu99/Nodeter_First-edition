@@ -5,11 +5,9 @@ const mocks = vi.hoisted(() => ({
     siteMetadataBase: vi.fn(() => new URL("https://example.com")),
     absoluteSiteUrl: vi.fn((value: string, base = new URL("https://example.com")) => new URL(value, base).toString()),
     browserIconHref: vi.fn((site: { iconUrl?: string; logoUrl?: string }) => site.iconUrl || site.logoUrl || "/icon.svg"),
-    listPublicWorkSitemapEntries: vi.fn(),
 }));
 
 vi.mock("@/lib/server/site-metadata", () => mocks);
-vi.mock("@/lib/server/work-governance-service", () => ({ listPublicWorkSitemapEntries: mocks.listPublicWorkSitemapEntries }));
 
 import manifest from "./manifest";
 import robots from "./robots";
@@ -20,8 +18,7 @@ import { GET as favicon } from "./api/site-icon/route";
 describe("site metadata routes", () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        mocks.getPublicSiteSettings.mockResolvedValue({ title: "自定义站点", iconUrl: "https://cdn.example.com/favicon.ico", seoDescription: "站点摘要" });
-        mocks.listPublicWorkSitemapEntries.mockResolvedValue([{ slug: "public-work", updatedAt: "2026-07-27T00:00:00.000Z" }]);
+        mocks.getPublicSiteSettings.mockResolvedValue({ title: "自定义站点", iconUrl: "https://cdn.example.com/favicon.ico" });
     });
 
     it("keeps private workspaces out of robots and points to the sitemap", () => {
@@ -32,14 +29,11 @@ describe("site metadata routes", () => {
         expect(result.sitemap).toBe("https://example.com/sitemap.xml");
     });
 
-    it("publishes only crawlable public pages and approved works", async () => {
+    it("publishes only crawlable public pages", async () => {
         expect((await sitemap()).map((entry) => entry.url)).toEqual([
             "https://example.com/",
-            "https://example.com/gallery",
-            "https://example.com/announcements",
             "https://example.com/terms",
             "https://example.com/privacy",
-            "https://example.com/share/public-work",
         ]);
     });
 
@@ -76,7 +70,7 @@ describe("site metadata routes", () => {
         expect(response.headers.get("location")).toBe("/icon.svg");
     });
 
-    it("falls back to the infinite-evolution icon when favicon points back to itself", async () => {
+    it("falls back to the Nodeter icon when favicon points back to itself", async () => {
         mocks.getPublicSiteSettings.mockResolvedValue({ title: "默认站点", iconUrl: "/favicon.ico", logoUrl: "/logo.svg" });
 
         const response = await favicon(new Request("http://localhost:3000/api/site-icon"));

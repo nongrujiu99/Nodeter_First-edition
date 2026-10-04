@@ -27,7 +27,7 @@ export default async function AdminSetupPage() {
         redirect("/login?next=/admin/setup");
     }
     const currentUser = access.user;
-    if (!hasAnyAdminPermission(currentUser, ["system.manage", "upstream.manage", "commerce.manage", "billing.manage"])) redirect("/");
+    if (!hasAnyAdminPermission(currentUser, ["system.manage", "upstream.manage"])) redirect("/");
 
     const setup = await getAdminSetupSummary();
     const nextStep = setup.steps.find((step) => step.status !== "done") || setup.steps[setup.steps.length - 1];

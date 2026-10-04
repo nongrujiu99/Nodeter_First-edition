@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ArrowRight, Mail, Send } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import { SiteLogo } from "@/components/layout/site-logo";
 import { HOME_NAVIGATION, type HomeNavigationItem } from "./home-data";
@@ -27,16 +27,10 @@ export function HomeCta() {
 }
 
 export function HomeFooter() {
-    const { site, openBillingPlans, openProtectedPath } = useHomeActions();
-    const friendLinks = site.friendLinks.filter((item) => item.enabled && item.label.trim() && item.url.trim());
-    const socials = Object.entries(site.socials).filter(([, item]) => item.enabled && item.label.trim() && item.url.trim());
+    const { site, openProtectedPath } = useHomeActions();
     const copyright = site.footerCopyright?.trim();
-    const policies = [site.privacyUrl?.trim() ? { label: "隐私政策", href: site.privacyUrl.trim() } : null, site.termsUrl?.trim() ? { label: "服务条款", href: site.termsUrl.trim() } : null].filter((item): item is { label: string; href: string } =>
-        Boolean(item),
-    );
     const navigationGroups: Array<{ title: string; items: readonly HomeNavigationItem[] }> = [
         { title: "产品", items: HOME_NAVIGATION },
-        { title: "平台", items: [{ label: "公告中心", href: "/announcements", action: "link" }] },
     ];
 
     return (
@@ -45,20 +39,8 @@ export function HomeFooter() {
                 <div className={styles.footerBrand}>
                     <Link href="/" className={styles.footerLogo}>
                         <SiteLogo logoUrl={site.logoUrl} className={styles.brandLogo} />
-                        <span>{site.title}</span>
+                        <span className="sr-only">{site.title}</span>
                     </Link>
-                    {site.seoDescription?.trim() ? <p>{site.seoDescription}</p> : null}
-                    {socials.length ? (
-                        <div className={styles.footerSocials}>
-                            {socials.map(([key, item]) => {
-                                return (
-                                    <a key={key} href={item.url} target={externalTarget(item.url)} rel={externalTarget(item.url) ? "noreferrer" : undefined} aria-label={item.label} title={item.label}>
-                                        {socialIcon(key)}
-                                    </a>
-                                );
-                            })}
-                        </div>
-                    ) : null}
                 </div>
 
                 <div className={styles.footerNavigation}>
@@ -69,10 +51,6 @@ export function HomeFooter() {
                                     <button key={item.href} type="button" onClick={() => openProtectedPath(item.href)}>
                                         {item.label}
                                     </button>
-                                ) : item.action === "billing" ? (
-                                    <button key={item.href} type="button" onClick={openBillingPlans}>
-                                        {item.label}
-                                    </button>
                                 ) : (
                                     <Link key={item.href} href={item.href}>
                                         {item.label}
@@ -81,29 +59,11 @@ export function HomeFooter() {
                             )}
                         </FooterColumn>
                     ))}
-                    {friendLinks.length ? (
-                        <FooterColumn title="友情链接">
-                            {friendLinks.map((item) => (
-                                <a key={item.id} href={item.url} target={externalTarget(item.url)} rel={externalTarget(item.url) ? "noreferrer" : undefined}>
-                                    {item.label}
-                                </a>
-                            ))}
-                        </FooterColumn>
-                    ) : null}
                 </div>
             </div>
-            {copyright || policies.length ? (
+            {copyright ? (
                 <div className={styles.footerBottom} data-testid="home-footer-bottom">
-                    {copyright ? <span>{copyright}</span> : null}
-                    {policies.length ? (
-                        <div>
-                            {policies.map((item) => (
-                                <a key={item.label} href={item.href} target={externalTarget(item.href)} rel={externalTarget(item.href) ? "noreferrer" : undefined}>
-                                    {item.label}
-                                </a>
-                            ))}
-                        </div>
-                    ) : null}
+                    <span>{copyright}</span>
                 </div>
             ) : null}
         </footer>
@@ -117,15 +77,4 @@ function FooterColumn({ title, children }: { title: string; children: ReactNode 
             {children}
         </nav>
     );
-}
-
-function externalTarget(url: string) {
-    return /^(https?:)?\/\//.test(url) ? "_blank" : undefined;
-}
-
-function socialIcon(key: string) {
-    if (key === "telegram") return <Send aria-hidden="true" />;
-    if (key === "x") return <span aria-hidden="true">X</span>;
-    if (key === "instagram") return <span aria-hidden="true">◎</span>;
-    return <Mail aria-hidden="true" />;
 }

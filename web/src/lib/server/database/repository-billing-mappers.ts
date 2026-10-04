@@ -1,15 +1,9 @@
 import type {
     AuditLogRecord,
     BillingOrderRecord,
-    BillingProductRecord,
-    BillingReconciliationRowRecord,
-    BillingReconciliationRunRecord,
     CouponRedemptionRecord,
     CouponTemplateRecord,
-    PaymentProviderEventRecord,
     PaymentTransactionRecord,
-    PromotionCampaignRecord,
-    PromotionProductRecord,
     UserCouponRecord,
     UserPlanAssignmentRecord,
 } from "./repository-types";
@@ -17,15 +11,11 @@ import { formatAccountId } from "@/lib/account-id";
 import {
     billingOrderStatusValue,
     billingProductKindValue,
-    billingReconciliationRunStatusValue,
-    billingReconciliationSourceValue,
-    billingReconciliationStatementStatusValue,
     isoValue,
     jsonValue,
     numberValue,
     optionalIso,
     optionalJson,
-    optionalNumber,
     optionalString,
     paymentTransactionStatusValue,
     planAssignmentSourceValue,
@@ -65,30 +55,6 @@ export function mapBillingOrder(row: Record<string, unknown>): BillingOrderRecor
         closedAt: optionalIso(row.closed_at),
         pricingSnapshot: optionalJson(row.pricing_snapshot),
         metadata: optionalJson(row.metadata),
-        createdAt: isoValue(row.created_at),
-        updatedAt: isoValue(row.updated_at),
-    };
-}
-
-export function mapPromotionProduct(value: unknown): PromotionProductRecord | undefined {
-    if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
-    const row = value as Record<string, unknown>;
-    const productId = stringValue(row.productId ?? row.product_id);
-    if (!productId) return undefined;
-    return { productId, promotionalAmountCents: numberValue(row.promotionalAmountCents ?? row.promotional_amount_cents) };
-}
-
-export function mapPromotionCampaign(row: Record<string, unknown>): PromotionCampaignRecord {
-    const products = jsonValue(row.products);
-    return {
-        id: stringValue(row.id),
-        name: stringValue(row.name),
-        label: stringValue(row.label),
-        enabled: row.enabled === true,
-        startsAt: isoValue(row.starts_at),
-        endsAt: isoValue(row.ends_at),
-        createdByUserId: optionalString(row.created_by_user_id),
-        products: Array.isArray(products) ? products.flatMap((item) => mapPromotionProduct(item) || []) : [],
         createdAt: isoValue(row.created_at),
         updatedAt: isoValue(row.updated_at),
     };
@@ -158,26 +124,6 @@ export function mapCouponRedemption(row: Record<string, unknown>): CouponRedempt
     };
 }
 
-export function mapBillingProduct(row: Record<string, unknown>): BillingProductRecord {
-    return {
-        id: stringValue(row.id),
-        productKind: billingProductKindValue(row.product_kind),
-        planId: optionalString(row.plan_id),
-        name: stringValue(row.name),
-        description: stringValue(row.description),
-        amountCents: numberValue(row.amount_cents),
-        currency: stringValue(row.currency),
-        pointsAmount: numberValue(row.points_amount),
-        dailyPoints: numberValue(row.daily_points),
-        periodDays: numberValue(row.period_days),
-        enabled: row.enabled !== false,
-        sortOrder: numberValue(row.sort_order),
-        metadata: optionalJson(row.metadata),
-        createdAt: isoValue(row.created_at),
-        updatedAt: isoValue(row.updated_at),
-    };
-}
-
 export function mapPaymentTransaction(row: Record<string, unknown>): PaymentTransactionRecord {
     return {
         id: stringValue(row.id),
@@ -199,56 +145,6 @@ export function mapPaymentTransaction(row: Record<string, unknown>): PaymentTran
     };
 }
 
-export function mapBillingReconciliationRun(row: Record<string, unknown>): BillingReconciliationRunRecord {
-    return {
-        id: stringValue(row.id),
-        provider: stringValue(row.provider),
-        source: billingReconciliationSourceValue(row.source),
-        status: billingReconciliationRunStatusValue(row.status),
-        totalRows: numberValue(row.total_rows),
-        matchedRows: numberValue(row.matched_rows),
-        okRows: numberValue(row.ok_rows),
-        issueRows: numberValue(row.issue_rows),
-        statementPaidAmountCents: numberValue(row.statement_paid_amount_cents),
-        statementRefundedAmountCents: numberValue(row.statement_refunded_amount_cents),
-        localMatchedAmountCents: numberValue(row.local_matched_amount_cents),
-        differenceAmountCents: numberValue(row.difference_amount_cents),
-        importedByUserId: optionalString(row.imported_by_user_id),
-        importedByUsername: optionalString(row.imported_by_username),
-        fileName: optionalString(row.file_name),
-        fileHash: optionalString(row.file_hash),
-        note: optionalString(row.note),
-        metadata: optionalJson(row.metadata),
-        createdAt: isoValue(row.created_at),
-        updatedAt: isoValue(row.updated_at),
-    };
-}
-
-export function mapBillingReconciliationRow(row: Record<string, unknown>): BillingReconciliationRowRecord {
-    return {
-        id: stringValue(row.id),
-        runId: stringValue(row.run_id),
-        rowNumber: numberValue(row.row_number),
-        rowKey: stringValue(row.row_key),
-        provider: stringValue(row.provider),
-        orderNo: optionalString(row.order_no),
-        providerOrderId: optionalString(row.provider_order_id),
-        providerPaymentId: optionalString(row.provider_payment_id),
-        statementStatus: billingReconciliationStatementStatusValue(row.statement_status),
-        amountCents: optionalNumber(row.amount_cents),
-        currency: optionalString(row.currency),
-        localOrderId: optionalString(row.local_order_id),
-        localOrderNo: optionalString(row.local_order_no),
-        localOrderStatus: optionalString(row.local_order_status),
-        localAmountCents: optionalNumber(row.local_amount_cents),
-        localCurrency: optionalString(row.local_currency),
-        issueCodes: jsonValue(row.issue_codes),
-        issues: jsonValue(row.issues),
-        createdAt: isoValue(row.created_at),
-        updatedAt: isoValue(row.updated_at),
-    };
-}
-
 export function mapUserPlanAssignment(row: Record<string, unknown>): UserPlanAssignmentRecord {
     return {
         id: stringValue(row.id),
@@ -260,23 +156,6 @@ export function mapUserPlanAssignment(row: Record<string, unknown>): UserPlanAss
         startsAt: isoValue(row.starts_at),
         endsAt: optionalIso(row.ends_at),
         metadata: optionalJson(row.metadata),
-        createdAt: isoValue(row.created_at),
-        updatedAt: isoValue(row.updated_at),
-    };
-}
-
-export function mapPaymentProviderEvent(row: Record<string, unknown>): PaymentProviderEventRecord {
-    return {
-        id: stringValue(row.id),
-        provider: stringValue(row.provider),
-        eventId: optionalString(row.event_id),
-        eventType: stringValue(row.event_type),
-        orderId: optionalString(row.order_id),
-        signatureValid: row.signature_valid === true,
-        payload: optionalJson(row.payload),
-        processingAt: optionalIso(row.processing_at),
-        processedAt: optionalIso(row.processed_at),
-        error: optionalString(row.error),
         createdAt: isoValue(row.created_at),
         updatedAt: isoValue(row.updated_at),
     };

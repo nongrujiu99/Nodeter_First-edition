@@ -76,12 +76,6 @@ describe("serializePublicSettings", () => {
                 ],
             },
         ];
-        settings.site.socials = {
-            email: { enabled: true, label: "邮箱", url: "mailto:owner@example.com" },
-            telegram: { enabled: true, label: "Telegram", url: "https://t.me/vozeb_group" },
-            x: { enabled: true, label: "X", url: "https://x.com/vozeb_pro" },
-            instagram: { enabled: true, label: "Instagram", url: "https://instagram.com/vozeb.pro" },
-        };
 
         const result = serializePublicSettings(settings);
         const serialized = JSON.stringify(result);
@@ -112,7 +106,6 @@ describe("serializePublicSettings", () => {
         expect(result).not.toHaveProperty("freeDailyPoints");
         expect(result.site).not.toHaveProperty("homeShowcaseMode");
         expect(result.site).not.toHaveProperty("homeShowcaseItems");
-        expect(result.site.socials).toEqual(settings.site.socials);
     });
 });
 

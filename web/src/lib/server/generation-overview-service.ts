@@ -1,8 +1,19 @@
 import type { AdminGenerationOverviewDistribution, AdminGenerationOverviewSummary } from "@/lib/admin-generation-overview";
 import { createPostgresRepositories, ensurePostgresSchema, isPostgresDatabaseEnabled } from "@/lib/server/database";
-import type { GenerationLogOverviewAggregate, GenerationLogOverviewBucket } from "@/lib/server/database/content-repository";
 import { kindLabel, readGenerationLogDb, sourceLabel } from "@/lib/server/generation-log-repository";
 import type { StoredGenerationLog } from "@/lib/server/generation-log-types";
+
+type GenerationLogOverviewBucket = { key: string; value: number };
+type GenerationLogOverviewAggregate = {
+    totalCalls: number;
+    successCalls: number;
+    failedCalls: number;
+    activeUsers: number;
+    daily: GenerationLogOverviewBucket[];
+    models: GenerationLogOverviewBucket[];
+    sources: GenerationLogOverviewBucket[];
+    kinds: GenerationLogOverviewBucket[];
+};
 
 const OVERVIEW_DAYS = 7;
 const OVERVIEW_TIME_ZONE = "Asia/Shanghai";

@@ -3,7 +3,6 @@ import { normalizeRegistrationPolicyConsent } from "@/lib/registration-consent";
 import { normalizeAdminPermissions } from "@/lib/admin-permissions";
 
 import type {
-    AnnouncementRecord,
     CdkCodeRecord,
     CdkRedemptionRecord,
     DailyPlanPointWalletRecord,
@@ -196,21 +195,6 @@ export function mapCdkRedemption(row: Record<string, unknown>): CdkRedemptionRec
         cdkCodeId: stringValue(row.cdk_code_id),
         userId: stringValue(row.user_id),
         redeemedAt: isoValue(row.redeemed_at),
-    };
-}
-
-export function mapAnnouncement(row: Record<string, unknown>): AnnouncementRecord {
-    return {
-        id: stringValue(row.id),
-        title: stringValue(row.title),
-        content: stringValue(row.content),
-        enabled: row.enabled !== false,
-        popupHome: row.popup_home === true,
-        popupAfterLogin: row.popup_after_login === true,
-        startsAt: optionalIso(row.starts_at),
-        endsAt: optionalIso(row.ends_at),
-        createdAt: isoValue(row.created_at),
-        updatedAt: isoValue(row.updated_at),
     };
 }
 

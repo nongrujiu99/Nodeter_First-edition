@@ -398,7 +398,7 @@ function CreativeAssistantAvatar({ logoUrl, className }: { logoUrl?: string; cla
             className={cn("grid size-11 shrink-0 place-items-center rounded-full border border-[#b9b5ff] bg-white text-[#615cff] shadow-[0_4px_14px_rgba(97,92,255,0.08)] dark:border-[#514b81] dark:bg-[#1d2025]", className)}
             aria-label="创作助手"
         >
-            <SiteLogo logoUrl={logoUrl || "/logo.svg"} className="size-6" />
+            <SiteLogo logoUrl={logoUrl || "/logo.svg"} className="h-6 w-auto" />
         </span>
     );
 }

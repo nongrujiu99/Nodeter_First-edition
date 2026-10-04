@@ -83,7 +83,7 @@ describe("UsersRepository security fields", () => {
             displayName: "管理员",
             bio: "",
             role: "admin",
-            adminPermissions: ["administrators.manage"],
+            adminPermissions: ["users.manage"],
             status: "active",
             planId: "free",
             pointsBalance: 0,

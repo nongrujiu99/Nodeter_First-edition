@@ -35,13 +35,13 @@ export function LazyMediaImage({
         <span className={cn("relative overflow-hidden bg-muted", hasPlaceholder ? "grid" : "block", status !== "ready" && "min-h-20", containerClassName)}>
             {status === "loading" && !placeholderReady ? (
                 <span className="absolute inset-0 grid min-h-20 place-items-center" aria-hidden="true">
-                    <SiteLogo logoUrl={logoUrl} className="size-8 opacity-35" />
+                    <SiteLogo logoUrl={logoUrl} className="h-8 w-auto opacity-35" />
                 </span>
             ) : null}
             {status === "error" && !placeholderReady ? (
                 <span className="absolute inset-0 grid min-h-20 place-items-center text-muted-foreground" role="img" aria-label={errorLabel}>
                     <span className="flex flex-col items-center gap-1.5 text-xs">
-                        <SiteLogo logoUrl={logoUrl} className="size-7 opacity-45" />
+                        <SiteLogo logoUrl={logoUrl} className="h-7 w-auto opacity-45" />
                         {errorLabel}
                     </span>
                 </span>

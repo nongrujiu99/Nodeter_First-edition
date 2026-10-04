@@ -4,8 +4,6 @@
   "defaultOpen": true,
   "pages": [
     "community",
-    "security",
-    "donate",
-    "sponsor"
+    "security"
   ]
 }

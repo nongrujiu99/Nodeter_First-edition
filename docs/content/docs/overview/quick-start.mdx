@@ -1,11 +1,11 @@
 ---
 title: 快速开始
-description: 使用 PostgreSQL、Docker Compose 或源码启动 VOZEB PRO
+description: 使用 PostgreSQL、Docker Compose 或源码启动 Nodeter
 ---
 
 # 快速开始
 
-VOZEB PRO 默认使用 PostgreSQL。推荐通过 Docker Compose 启动主应用与 PostgreSQL，再使用安装向导创建第一个管理员。
+Nodeter 默认使用 PostgreSQL。推荐通过 Docker Compose 启动主应用与 PostgreSQL，再使用安装向导创建第一个管理员。
 
 ## 最低服务器配置
 
@@ -18,7 +18,7 @@ VOZEB PRO 默认使用 PostgreSQL。推荐通过 Docker Compose 启动主应用�
 | 推荐日常使用               | 2–4 vCPU | 4GB            | 40GB+ SSD  | 支持主要工作台、后台和少量并发，建议使用对象存储承载长期视频              |
 | 短剧合成/频繁本地视频处理  | 4+ vCPU  | 8GB+           | 80GB+ SSD  | FFmpeg 转码、字幕、配音混合和长视频临时文件需要额外 CPU、内存与磁盘空间   |
 
-基础环境：64 位 Linux（amd64 或 arm64）、Docker Engine 与 Compose v2、PostgreSQL 16、80/443 端口、HTTPS 域名，以及能访问模型、对象存储、SMTP 和支付服务的出站网络。源码运行需要 Node.js 22 与 pnpm 10+。
+基础环境：64 位 Linux（amd64 或 arm64）、Docker Engine 与 Compose v2、PostgreSQL 16、80/443 端口、HTTPS 域名，以及能访问模型、对象存储和 SMTP 的出站网络。源码运行需要 Node.js 22 与 pnpm 10+。
 
 最低配置代表“能够启动和体验”，不代表可以稳定处理并发视频或短剧。使用本地媒体存储时，磁盘容量应按作品数量和保留周期单独估算。
 
@@ -88,9 +88,8 @@ docker compose -f docker-compose.baota.yml up -d
 1. 系统模型渠道与渠道能力测试。
 2. 文本、图片、视频、音频逻辑模型绑定。
 3. 各能力默认模型。
-4. 注册、邮箱和初始套餐/积分。
+4. 注册策略和邮箱配置。
 5. 本地媒体目录和临时文件清理策略。
-6. 需要商业化时再配置商品、支付渠道和回调。
 
 ## 源码启动
 

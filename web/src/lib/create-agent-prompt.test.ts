@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { CREATE_AGENT_PROMPT_MAX_LENGTH, createAgentDraftFromHash, createAgentPromptFromHash, createAgentPromptHref } from "./create-agent-prompt";
 
 describe("Agent prompt handoff", () => {
-    it("round-trips a gallery prompt through a create-page fragment", () => {
+    it("round-trips a prompt through a create-page fragment", () => {
         const href = createAgentPromptHref("  生成一只阳光下的中华田园犬  ");
 
         expect(href).toMatch(/^\/create#/);

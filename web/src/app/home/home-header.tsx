@@ -16,7 +16,7 @@ export function HomeHeader() {
     const [navIndicator, setNavIndicator] = useState({ left: 0, width: 0, visible: false });
     const navItemRefs = useRef<(HTMLAnchorElement | HTMLButtonElement | null)[]>([]);
     const hoveredNavIndex = useRef<number | null>(null);
-    const { authenticated, site, openLogin, openBillingPlans, openProtectedPath } = useHomeActions();
+    const { authenticated, site, openLogin, openProtectedPath } = useHomeActions();
     const theme = useThemeStore((state) => state.theme);
     const setTheme = useThemeStore((state) => state.setTheme);
 
@@ -41,7 +41,6 @@ export function HomeHeader() {
 
     const activate = (item: HomeNavigationItem) => {
         setMobileOpen(false);
-        if (item.action === "billing") openBillingPlans();
         if (item.action === "protected") openProtectedPath(item.href);
     };
 
@@ -55,7 +54,7 @@ export function HomeHeader() {
             <div className={styles.headerInner}>
                 <Link href="/" className={styles.brand} aria-label={`${site.title} 首页`}>
                     <SiteLogo logoUrl={site.logoUrl} className={styles.brandLogo} />
-                    <span>{site.title}</span>
+                    <span className="sr-only">{site.title}</span>
                 </Link>
 
                 <nav
@@ -67,8 +66,7 @@ export function HomeHeader() {
                     }}
                 >
                     <span className={styles.navGlassIndicator} data-testid="home-nav-glass" aria-hidden="true" style={{ left: navIndicator.left, opacity: navIndicator.visible ? 1 : 0, width: navIndicator.width }} />
-                    {HOME_NAVIGATION.map((item, index) =>
-                        item.action !== "link" ? (
+                    {HOME_NAVIGATION.map((item, index) => (
                             <button
                                 key={item.href}
                                 ref={(node) => {
@@ -82,21 +80,7 @@ export function HomeHeader() {
                             >
                                 {item.label}
                             </button>
-                        ) : (
-                            <Link
-                                key={item.href}
-                                ref={(node) => {
-                                    navItemRefs.current[index] = node;
-                                }}
-                                href={item.href}
-                                className={styles.navLink}
-                                onPointerEnter={() => trackNavItem(index)}
-                                onFocus={() => trackNavItem(index)}
-                            >
-                                {item.label}
-                            </Link>
-                        ),
-                    )}
+                        ))}
                 </nav>
 
                 <div className={styles.headerActions}>
@@ -112,19 +96,12 @@ export function HomeHeader() {
 
             {mobileOpen ? (
                 <nav id="home-mobile-menu" className={styles.mobileNav} aria-label="移动端导航">
-                    {HOME_NAVIGATION.map((item) =>
-                        item.action !== "link" ? (
+                    {HOME_NAVIGATION.map((item) => (
                             <button key={item.href} type="button" onClick={() => activate(item)}>
                                 {item.label}
                                 <ArrowRight aria-hidden="true" />
                             </button>
-                        ) : (
-                            <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)}>
-                                {item.label}
-                                <ArrowRight aria-hidden="true" />
-                            </Link>
-                        ),
-                    )}
+                        ))}
                 </nav>
             ) : null}
         </header>

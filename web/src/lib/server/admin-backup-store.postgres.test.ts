@@ -20,7 +20,6 @@ describe("admin backup PostgreSQL integration", () => {
             partial.auth.pointRecords = partial.auth.pointRecords.filter((record) => record.userId !== fixture.userId);
             partial.prompts.prompts = partial.prompts.prompts.filter((prompt) => prompt.ownerUserId !== fixture.userId);
             partial.generationLogs.logs = partial.generationLogs.logs.filter((log) => log.userId !== fixture.userId);
-            partial.accountDeletionRequests.requests = partial.accountDeletionRequests.requests.filter((request) => request.userId !== fixture.userId);
 
             await restoreAdminBackupData(partial);
 

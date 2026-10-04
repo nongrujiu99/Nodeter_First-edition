@@ -4,10 +4,9 @@ import type { AdminSectionKey } from "@/components/admin/admin-sections";
 import { createDefaultChannelAdvancedConfig } from "@/components/admin/admin-system-channel-editor";
 import { toNumberOrOne, toNumberOrZero, uniqueList } from "@/components/admin/admin-values";
 import { channelProtocolDefinition, channelSupportsModelCatalog, normalizeStrictProtocolModelConfig } from "@/lib/channel-protocol-registry";
-import { nanoid } from "nanoid";
 import type { ReactNode } from "react";
 
-import type { AuthSettings, PublicUser, PublicUserSummary, SiteFriendLink, SiteSocialKey, SystemChannelAdvancedConfig, SystemModelChannel } from "@/lib/auth/store";
+import type { AuthSettings, PublicUser, PublicUserSummary, SystemChannelAdvancedConfig, SystemModelChannel } from "@/lib/auth/store";
 import { buildGlobalAiOpcSelection } from "@/lib/globalaiopc-catalog";
 import { normalizeDefaultModelsConfig, synchronizeLogicalModelsWithChannels } from "@/lib/model-routing-config";
 import type { AdminSetupSummary } from "@/lib/server/admin-setup-status";
@@ -24,19 +23,6 @@ export type AdminDashboardProps = {
     setupSummary?: AdminSetupSummary;
     headerActions?: ReactNode;
 };
-export type PromptFormValue = {
-    title: string;
-    prompt: string;
-    category?: string;
-    tags?: string;
-    coverUrl?: string;
-    preview?: string;
-};
-
-export const PROMPT_PAGE_SIZE = 20;
-export const PROMPT_SEARCH_DEBOUNCE_MS = 300;
-export const CDK_PAGE_SIZE = 20;
-export const GENERATION_LOG_PAGE_SIZE = 20;
 
 import type { AdminDashboardDataActions } from "./use-admin-dashboard-data-actions";
 import type { AdminDashboardState } from "./use-admin-dashboard-state";
@@ -195,7 +181,7 @@ export function useAdminDashboardSettingsActions({ state, data }: { state: Admin
         }
     };
 
-    const updateSiteSetting = <K extends keyof Omit<AuthSettings["site"], "socials">>(key: K, value: AuthSettings["site"][K]) => {
+    const updateSiteSetting = <K extends keyof AuthSettings["site"]>(key: K, value: AuthSettings["site"][K]) => {
         updateSite((site) => ({ ...site, [key]: value }));
     };
 
@@ -221,42 +207,6 @@ export function useAdminDashboardSettingsActions({ state, data }: { state: Admin
 
     const uploadSiteLogo = (file?: File) => uploadSiteImage(file, "logoUrl", "Logo");
     const uploadSiteIcon = (file?: File) => uploadSiteImage(file, "iconUrl", "浏览器图标");
-
-    const updateSiteSocialSetting = (key: SiteSocialKey, patch: Partial<AuthSettings["site"]["socials"][SiteSocialKey]>) => {
-        updateSite((site) => ({
-            ...site,
-            socials: {
-                ...site.socials,
-                [key]: { ...site.socials[key], ...patch },
-            },
-        }));
-    };
-
-    const addFriendLink = () => {
-        updateSite((site) => ({
-            ...site,
-            friendLinks: [...(site.friendLinks || []), { id: nanoid(), label: "友情链接", url: "https://", enabled: true }],
-        }));
-    };
-
-    const updateFriendLink = (id: string, patch: Partial<SiteFriendLink>) => {
-        updateSite((site) => ({
-            ...site,
-            friendLinks: (site.friendLinks || []).map((link) => (link.id === id ? { ...link, ...patch } : link)),
-        }));
-    };
-
-    const deleteFriendLink = async (id: string) => {
-        const previousSite = getLatestSiteSettings();
-        const site = {
-            ...previousSite,
-            friendLinks: (previousSite.friendLinks || []).filter((link) => link.id !== id),
-        };
-        updateSite(() => site);
-        const saved = await saveSettings({ site }, "友情链接已删除");
-        if (!saved && getLatestSiteSettings() === site) updateSite(() => previousSite);
-        return saved;
-    };
 
     const fetchModelsForChannel = async (channel: SystemModelChannel) => {
         if (!channelSupportsModelCatalog(channel)) {
@@ -332,10 +282,6 @@ export function useAdminDashboardSettingsActions({ state, data }: { state: Admin
         getLatestSettings,
         uploadSiteLogo,
         uploadSiteIcon,
-        updateSiteSocialSetting,
-        addFriendLink,
-        updateFriendLink,
-        deleteFriendLink,
         fetchModelsForChannel,
         fetchAllModels,
     };

@@ -32,14 +32,7 @@ import {
     type CreatedCdkCode,
     type StoredCdkRedemption,
     type StoredCdkCode,
-    type PublicAnnouncement,
-    type AnnouncementPage,
     type SiteSettings,
-    type SiteFriendLink,
-    type SiteSocialKey,
-    type SiteSocialSettings,
-    DEFAULT_SITE_SOCIALS,
-    DEFAULT_SITE_FRIEND_LINKS,
     type MailSettings,
     type PublicUser,
     type StoredUser,
@@ -107,9 +100,6 @@ import {
     normalizeFeatureList,
     normalizeGenerationConcurrency,
     normalizeSiteSettings,
-    normalizeSiteFriendLinks,
-    normalizeSiteSocials,
-    normalizeSiteSocial,
     normalizeMailSettings,
     normalizeSecretText,
     normalizeText,
@@ -140,8 +130,6 @@ import {
     generateCdkPlainCode,
     formatCdkCodeForDisplay,
     previewCdkCode,
-    normalizeAnnouncement,
-    isAnnouncementVisible,
     normalizeOptionalIsoDate,
     resolveCdkExpiresAt,
     normalizePointRecord,
@@ -191,7 +179,7 @@ export async function writeAuthDb(db: AuthDatabase) {
 /** Full authentication snapshot for the explicit administrator backup transaction only. */
 export async function readPostgresAuthDb(executor: QueryExecutor): Promise<AuthDatabase> {
     const query: QueryExecutor["query"] = executor.query.bind(executor);
-    const [settingsResult, planResult, channelResult, userResult, sessionResult, quotaResult, pointRecordResult, dailyWalletResult, emailCodeResult, cdkResult, cdkRedemptionResult, announcementResult] = await Promise.all([
+    const [settingsResult, planResult, channelResult, userResult, sessionResult, quotaResult, pointRecordResult, dailyWalletResult, emailCodeResult, cdkResult, cdkRedemptionResult] = await Promise.all([
         query("SELECT * FROM app_settings WHERE id = 'default'"),
         query("SELECT * FROM entitlement_plans ORDER BY sort_order ASC, created_at ASC"),
         query("SELECT * FROM system_model_channels ORDER BY sort_order ASC, created_at ASC"),
@@ -203,7 +191,6 @@ export async function readPostgresAuthDb(executor: QueryExecutor): Promise<AuthD
         query("SELECT * FROM email_codes ORDER BY created_at ASC"),
         query("SELECT * FROM cdk_codes ORDER BY created_at ASC"),
         query("SELECT * FROM cdk_redemptions ORDER BY redeemed_at ASC"),
-        query("SELECT * FROM announcements ORDER BY created_at DESC"),
     ]);
     const redemptionsByCodeId = new Map<string, StoredCdkRedemption[]>();
     for (const row of cdkRedemptionResult.rows) {
@@ -222,7 +209,6 @@ export async function readPostgresAuthDb(executor: QueryExecutor): Promise<AuthD
         dailyPlanPointWallets: dailyWalletResult.rows.map(mapPostgresDailyPlanPointWallet),
         emailCodes: emailCodeResult.rows.map(mapPostgresEmailCode),
         cdkCodes: cdkResult.rows.map((row) => mapPostgresCdkCode(row, redemptionsByCodeId.get(dbText(row.id)) || [])),
-        announcements: announcementResult.rows.map(mapPostgresAnnouncement),
         settings: mapPostgresSettings(settingsResult.rows[0], planResult.rows, channelResult.rows),
     });
 }
@@ -263,36 +249,6 @@ export async function readPostgresCdkListData(input?: { page?: number; pageSize?
         pageSize: result.pageSize,
         stats: result.stats,
     };
-}
-
-export async function readPostgresAnnouncementsPage(input: { includeDisabled: boolean; page: number; pageSize: number; visibleAt?: string }, executor?: QueryExecutor): Promise<AnnouncementPage> {
-    if (!executor) await ensurePostgresSchema();
-    const query: QueryExecutor["query"] = executor ? executor.query.bind(executor) : postgresQuery;
-    const page = Number.isSafeInteger(input.page) && input.page > 0 ? input.page : 1;
-    const pageSize = Number.isSafeInteger(input.pageSize) && input.pageSize > 0 ? Math.min(100, input.pageSize) : 20;
-    const visibleAt = input.visibleAt || new Date().toISOString();
-    const result = await query(
-        `SELECT *, count(*) OVER() AS total_count
-         FROM announcements
-         WHERE ($1::boolean = true OR (
-             enabled = true
-             AND (starts_at IS NULL OR starts_at <= $2::timestamptz)
-             AND (ends_at IS NULL OR ends_at > $2::timestamptz)
-         ))
-         ORDER BY created_at DESC, id DESC
-         LIMIT $3 OFFSET $4`,
-        [input.includeDisabled, visibleAt, pageSize, (page - 1) * pageSize],
-    );
-    return {
-        items: result.rows.map(mapPostgresAnnouncement),
-        total: dbNumber(result.rows[0]?.total_count, 0),
-        page,
-        pageSize,
-    };
-}
-
-export async function readPostgresAnnouncements(executor?: QueryExecutor) {
-    return (await readPostgresAnnouncementsPage({ includeDisabled: true, page: 1, pageSize: 100 }, executor)).items;
 }
 
 export async function readPostgresAuthSettings(executor?: QueryExecutor): Promise<AuthSettings> {
@@ -467,21 +423,6 @@ export function mapPostgresCdkCode(row: Record<string, unknown>, redemptions: St
         note: dbText(row.note),
         expiresAt: dbOptionalIso(row.expires_at),
         redemptions,
-        createdAt: dbIso(row.created_at),
-        updatedAt: dbIso(row.updated_at),
-    };
-}
-
-export function mapPostgresAnnouncement(row: Record<string, unknown>): PublicAnnouncement {
-    return {
-        id: dbText(row.id),
-        title: dbText(row.title),
-        content: dbText(row.content),
-        enabled: dbBool(row.enabled, true),
-        popupHome: dbBool(row.popup_home, false),
-        popupAfterLogin: dbBool(row.popup_after_login, false),
-        startsAt: dbOptionalIso(row.starts_at),
-        endsAt: dbOptionalIso(row.ends_at),
         createdAt: dbIso(row.created_at),
         updatedAt: dbIso(row.updated_at),
     };
@@ -780,39 +721,6 @@ export async function insertPostgresCdkCodes(db: QueryExecutor, codes: StoredCdk
                 [code.id, redemption.userId, redemption.redeemedAt],
             );
         }
-    }
-}
-
-export async function insertPostgresAnnouncements(db: QueryExecutor, announcements: PublicAnnouncement[]) {
-    for (const announcement of announcements) {
-        await db.query(
-            `
-            INSERT INTO announcements (id, title, content, enabled, popup_home, popup_after_login, starts_at, ends_at, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-            ON CONFLICT (id) DO UPDATE SET
-                title = EXCLUDED.title,
-                content = EXCLUDED.content,
-                enabled = EXCLUDED.enabled,
-                popup_home = EXCLUDED.popup_home,
-                popup_after_login = EXCLUDED.popup_after_login,
-                starts_at = EXCLUDED.starts_at,
-                ends_at = EXCLUDED.ends_at,
-                created_at = EXCLUDED.created_at,
-                updated_at = EXCLUDED.updated_at
-            `,
-            [
-                announcement.id,
-                announcement.title,
-                announcement.content,
-                announcement.enabled,
-                announcement.popupHome,
-                announcement.popupAfterLogin,
-                announcement.startsAt || null,
-                announcement.endsAt || null,
-                announcement.createdAt,
-                announcement.updatedAt,
-            ],
-        );
     }
 }
 

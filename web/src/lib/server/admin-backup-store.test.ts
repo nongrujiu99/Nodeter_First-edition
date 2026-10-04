@@ -25,9 +25,6 @@ const mocks = vi.hoisted(() => ({
     writeGenerationLogDb: vi.fn(),
     upsertPostgresGenerationLogDbWithExecutor: vi.fn(),
     restorePostgresAuthSnapshot: vi.fn(),
-    readAccountDeletionRequestBackup: vi.fn(),
-    writeAccountDeletionRequestBackup: vi.fn(),
-    upsertAccountDeletionRequestBackup: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/store-repository", () => ({
@@ -53,11 +50,6 @@ vi.mock("@/lib/server/database", () => ({
     getDatabaseProvider: vi.fn(() => mocks.provider),
     withPostgresTransaction: vi.fn(async (callback: (client: typeof mocks.client) => unknown) => callback(mocks.client)),
 }));
-vi.mock("@/lib/server/database/account-deletion-request-repository", () => ({
-    readAccountDeletionRequestBackup: mocks.readAccountDeletionRequestBackup,
-    writeAccountDeletionRequestBackup: mocks.writeAccountDeletionRequestBackup,
-    upsertAccountDeletionRequestBackup: mocks.upsertAccountDeletionRequestBackup,
-}));
 
 import { readAdminBackupData, restoreAdminBackupData } from "./admin-backup-store";
 
@@ -74,7 +66,6 @@ describe("admin backup store", () => {
         expect(mocks.readPostgresAuthDb).toHaveBeenCalledWith(mocks.client);
         expect(mocks.readPostgresPromptDb).toHaveBeenCalledWith(mocks.client);
         expect(mocks.readPostgresGenerationLogDb).toHaveBeenCalledWith(mocks.client);
-        expect(mocks.readAccountDeletionRequestBackup).toHaveBeenCalledWith(mocks.client);
     });
 
     it("locks and upserts a merged PostgreSQL snapshot without dropping backup-missing users", async () => {
@@ -118,7 +109,6 @@ describe("admin backup store", () => {
         expect(mocks.writeAuthDb).toHaveBeenCalledTimes(2);
         expect(mocks.writePromptBackup).toHaveBeenCalledTimes(2);
         expect(mocks.writeGenerationLogDb).toHaveBeenCalledTimes(1);
-        expect(mocks.writeAccountDeletionRequestBackup).toHaveBeenCalledTimes(1);
         expect(mocks.writeAuthDb.mock.calls[1]?.[0]).toEqual(current.auth);
         expect(mocks.writeGenerationLogDb).toHaveBeenCalledWith(current.generationLogs);
     });
@@ -137,7 +127,6 @@ function setReadSnapshot(data: AdminBackupData) {
     mocks.readPostgresPromptDb.mockResolvedValue(data.prompts);
     mocks.readGenerationLogDb.mockResolvedValue(data.generationLogs);
     mocks.readPostgresGenerationLogDb.mockResolvedValue(data.generationLogs);
-    mocks.readAccountDeletionRequestBackup.mockResolvedValue(data.accountDeletionRequests);
 }
 
 function emptyBackup(): AdminBackupData {
@@ -145,7 +134,6 @@ function emptyBackup(): AdminBackupData {
         auth: emptyDb(),
         prompts: { version: 1, prompts: [], seedSources: [] },
         generationLogs: { version: 1, logs: [] },
-        accountDeletionRequests: { version: 1, requests: [] },
     };
 }
 

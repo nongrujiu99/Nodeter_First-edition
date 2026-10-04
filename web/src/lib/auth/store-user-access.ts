@@ -1,12 +1,10 @@
 import { randomUUID } from "node:crypto";
 
 import { formatAccountId } from "@/lib/account-id";
-import { BillingInputError } from "@/lib/server/billing-errors";
 import { lockAuthMutation } from "@/lib/server/auth-mutation-lock";
 import { createPostgresRepositories, ensurePostgresSchema, isPostgresDatabaseEnabled, withPostgresTransaction } from "@/lib/server/database";
 import { assertInstallToken, InstallTokenError } from "@/lib/server/install-token";
 import { adjustPermanentPointsInAuthDb, adjustPermanentPointsInPostgresTransaction, walletClock } from "@/lib/server/points-wallet-service";
-import { bindReferralRelationshipAfterRegistration, normalizeReferralCode } from "@/lib/server/referral-service";
 import { createRegistrationPolicyConsent } from "@/lib/registration-consent";
 import { verifyAdminMfaForLogin } from "@/lib/server/admin-mfa-service";
 import { ALL_ADMIN_PERMISSIONS, hasAdminPermission, hasAllAdminPermissions, normalizeAdminPermissions, type AdminPermission } from "@/lib/admin-permissions";
@@ -33,9 +31,7 @@ import { mutateAuthDb, readAuthDb, readPostgresAuthSettings } from "./store-repo
 import { publicUserFromAuthenticatedRecord, toPublicUser } from "./store-user-projection";
 import { type AuthDatabase, type EmailCodePurpose, type StoredUser, type UserRole, type UserStatus } from "./store-types";
 
-export async function createUser(input: { username: string; email?: string; emailCode?: string; displayName?: string; password: string; policyAccepted: boolean; referralCode?: string; referralSource?: string; referralClientIp?: string }) {
-    const referralCode = normalizeReferralCode(input.referralCode);
-    if (referralCode && !isPostgresDatabaseEnabled()) throw new AuthInputError("邀请功能需要启用 PostgreSQL", 501);
+export async function createUser(input: { username: string; email?: string; emailCode?: string; displayName?: string; password: string }) {
     const username = normalizeUsername(input.username);
     const email = normalizeEmail(input.email);
     const displayName = normalizeDisplayName(input.displayName || username);
@@ -52,7 +48,6 @@ export async function createUser(input: { username: string; email?: string; emai
             const settings = await readPostgresAuthSettings(client);
             if ((await repos.users.count()) === 0) throw new AuthInputError("请先通过安装向导创建管理员", 503);
             if (!settings.registrationEnabled) throw new AuthInputError("注册已关闭");
-            if (!input.policyAccepted) throw new AuthInputError("请先阅读并同意服务条款和隐私政策");
             if (settings.emailRegistrationEnabled && !email) throw new AuthInputError("请填写邮箱地址");
             assertNoIdentityConflict(await repos.users.findIdentityConflict({ username, email: email || undefined }), username, email);
             if (settings.emailRegistrationEnabled) {
@@ -75,30 +70,16 @@ export async function createUser(input: { username: string; email?: string; emai
                 passwordHash: await hashPassword(input.password),
                 registrationConsent: createRegistrationPolicyConsent(
                     {
-                        termsVersion: settings.site.termsVersion,
-                        termsUrl: settings.site.termsUrl,
-                        privacyVersion: settings.site.privacyVersion,
-                        privacyUrl: settings.site.privacyUrl,
+                        termsVersion: "",
+                        termsUrl: "",
+                        privacyVersion: "",
+                        privacyUrl: "",
                     },
                     now,
                 ),
                 createdAt: now,
                 updatedAt: now,
             });
-            if (referralCode) {
-                try {
-                    await bindReferralRelationshipAfterRegistration(client, {
-                        inviteeUserId: user.id,
-                        referralCode,
-                        attributionSource: input.referralSource,
-                        clientIp: input.referralClientIp,
-                        strict: true,
-                    });
-                } catch (error) {
-                    if (error instanceof BillingInputError) throw new AuthInputError(error.message, error.status);
-                    throw error;
-                }
-            }
             const record = (await repos.users.getPublicDetails([user.id], { now, date: clock.date }))[0];
             if (!record) throw new AuthInputError("用户创建失败");
             return { ok: true as const, user: publicUserFromAuthenticatedRecord(record, clock.expiresAt) };
@@ -110,7 +91,6 @@ export async function createUser(input: { username: string; email?: string; emai
     return mutateAuthDb(async (db) => {
         if (db.users.length === 0) throw new AuthInputError("请先通过安装向导创建管理员", 503);
         if (!db.settings.registrationEnabled) throw new AuthInputError("注册已关闭");
-        if (!input.policyAccepted) throw new AuthInputError("请先阅读并同意服务条款和隐私政策");
         if (db.settings.emailRegistrationEnabled && !email) throw new AuthInputError("请填写邮箱地址");
         if (db.users.some((user) => user.username.toLowerCase() === username.toLowerCase())) throw new AuthInputError("用户名已存在");
         if (email && db.users.some((user) => user.email?.toLowerCase() === email.toLowerCase())) throw new AuthInputError("邮箱已被注册");
@@ -132,10 +112,10 @@ export async function createUser(input: { username: string; email?: string; emai
             passwordHash: await hashPassword(input.password),
             registrationConsent: createRegistrationPolicyConsent(
                 {
-                    termsVersion: db.settings.site.termsVersion,
-                    termsUrl: db.settings.site.termsUrl,
-                    privacyVersion: db.settings.site.privacyVersion,
-                    privacyUrl: db.settings.site.privacyUrl,
+                    termsVersion: "",
+                    termsUrl: "",
+                    privacyVersion: "",
+                    privacyUrl: "",
                 },
                 now,
             ),
@@ -440,15 +420,12 @@ function assertNoIdentityConflict(conflict: StoredUser | null, username: string,
 }
 
 function assertCanCreateManagedUser(actor: StoredUser | null | undefined, input: { role?: UserRole; adminPermissions?: AdminPermission[]; pointsBalance?: number; planId?: string }) {
+    assertAdminPermission(actor, "users.manage");
     if (input.role === "admin") {
-        assertAdminPermission(actor, "administrators.manage");
         const permissions = normalizeAdminPermissions(input.adminPermissions);
         if (!permissions.length) throw new AuthInputError("管理员至少需要一项职责权限");
         if (!hasAllAdminPermissions(actor, permissions)) throw new AuthInputError("不能授予超出当前管理员职责范围的权限", 403);
-    } else {
-        assertAdminPermission(actor, "users.manage");
     }
-    if ((Number(input.pointsBalance) || 0) !== 0 || input.planId !== undefined) assertAdminPermission(actor, "billing.manage");
 }
 
 function assertAdminPermission(actor: StoredUser | null | undefined, permission: AdminPermission) {

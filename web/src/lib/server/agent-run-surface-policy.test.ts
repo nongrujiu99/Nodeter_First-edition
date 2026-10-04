@@ -45,7 +45,7 @@ describe("agentPlannerInput", () => {
         const prompt = agentPlannerSystemPrompt("chat", "{}", "星河创作");
 
         expect(prompt).toContain("你是 星河创作 统一创作 Agent");
-        expect(prompt).not.toContain("VOZEB PRO");
+        expect(prompt).not.toContain("Nodeter");
     });
 
     it("keeps selected Canvas nodes, one-hop relations and exact size while dropping unrelated nodes", () => {

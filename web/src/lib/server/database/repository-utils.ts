@@ -1,9 +1,6 @@
 import type {
     BillingOrderStatus,
     BillingProductKind,
-    BillingReconciliationRunStatus,
-    BillingReconciliationSource,
-    BillingReconciliationStatementStatus,
     JsonValue,
     PageResult,
     PaymentTransactionStatus,
@@ -79,18 +76,6 @@ export function billingProductKindValue(value: unknown): BillingProductKind {
 
 export function paymentTransactionStatusValue(value: unknown): PaymentTransactionStatus {
     return value === "succeeded" || value === "failed" || value === "refunded" ? value : "pending";
-}
-
-export function billingReconciliationRunStatusValue(value: unknown): BillingReconciliationRunStatus {
-    return value === "failed" ? "failed" : "completed";
-}
-
-export function billingReconciliationSourceValue(value: unknown): BillingReconciliationSource {
-    return value === "provider-api" || value === "manual" ? value : "csv";
-}
-
-export function billingReconciliationStatementStatusValue(value: unknown): BillingReconciliationStatementStatus {
-    return value === "paid" || value === "refunded" || value === "pending" || value === "failed" ? value : "unknown";
 }
 
 export function planAssignmentStatusValue(value: unknown): PlanAssignmentStatus {

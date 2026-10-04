@@ -23,7 +23,6 @@ describe("POST /api/admin/backup/export", () => {
             auth: { users: [{ id: "user-one", passwordHash: "secret" }] },
             prompts: { version: 1, prompts: [] },
             generationLogs: { version: 1, logs: [] },
-            accountDeletionRequests: { version: 1, requests: [{ id: "request-one", email: "private@example.com" }] },
         });
     });
 

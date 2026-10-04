@@ -590,7 +590,7 @@ function AgentAvatar({ theme }: { theme: (typeof canvasThemes)[keyof typeof canv
     const site = usePublicSessionStore((state) => state.payload?.settings?.site) || { title: DEFAULT_SITE_TITLE, logoUrl: "/logo.svg" };
     return (
         <span className="grid size-8 shrink-0 place-items-center" role="img" aria-label={`${resolveSiteTitle(site.title)} Agent`} style={{ color: theme.node.text }}>
-            <SiteLogo logoUrl={site.logoUrl} className="size-5" />
+            <SiteLogo logoUrl={site.logoUrl} className="h-5 w-auto" />
         </span>
     );
 }

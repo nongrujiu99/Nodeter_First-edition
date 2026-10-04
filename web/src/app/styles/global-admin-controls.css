@@ -621,14 +621,6 @@
             gap: 6px;
         }
 
-        .app-shell-header .app-user-status-actions .app-points-action {
-            min-width: 62px;
-        }
-
-        .user-points-popover .ant-popover-inner {
-            width: min(13rem, calc(100vw - 44px));
-        }
-
         .landing-site-header > div > a {
             flex: 1 1 auto;
             max-width: calc(100vw - 152px);
@@ -754,7 +746,7 @@
 
         .landing-auth-brand-logo {
             height: 38px;
-            width: 38px;
+            width: auto;
         }
 
         .landing-auth-modal-copy h2 {

@@ -30,8 +30,8 @@ describe("administrator user-management duties", () => {
 
     it("prevents a limited administrator from managing a broader administrator", async () => {
         const owner = await createFirstAdmin({ username: "owner", password: "password123", installToken: INSTALL_TOKEN });
-        const limited = await createUserByAdmin({ actorId: owner.id, username: "limited", password: "password123", role: "admin", adminPermissions: ["administrators.manage"] });
-        const systemAdmin = await createUserByAdmin({ actorId: owner.id, username: "system-admin", password: "password123", role: "admin", adminPermissions: ["administrators.manage", "system.manage"] });
+        const limited = await createUserByAdmin({ actorId: owner.id, username: "limited", password: "password123", role: "admin", adminPermissions: ["users.manage"] });
+        const systemAdmin = await createUserByAdmin({ actorId: owner.id, username: "system-admin", password: "password123", role: "admin", adminPermissions: ["users.manage", "system.manage"] });
 
         await expect(updateUserByAdmin(limited.id, systemAdmin.id, { displayName: "越权修改" })).rejects.toMatchObject({ status: 403 });
         await expect(deleteUserByAdmin(limited.id, systemAdmin.id)).rejects.toMatchObject({ status: 403 });
@@ -39,9 +39,9 @@ describe("administrator user-management duties", () => {
 
     it("allows delegation only within the current administrator permission set", async () => {
         const owner = await createFirstAdmin({ username: "owner", password: "password123", installToken: INSTALL_TOKEN });
-        const limited = await createUserByAdmin({ actorId: owner.id, username: "limited", password: "password123", role: "admin", adminPermissions: ["administrators.manage"] });
+        const limited = await createUserByAdmin({ actorId: owner.id, username: "limited", password: "password123", role: "admin", adminPermissions: ["users.manage"] });
 
-        await expect(createUserByAdmin({ actorId: limited.id, username: "too-powerful", password: "password123", role: "admin", adminPermissions: ["administrators.manage", "system.manage"] })).rejects.toMatchObject({ status: 403 });
-        await expect(createUserByAdmin({ actorId: limited.id, username: "peer", password: "password123", role: "admin", adminPermissions: ["administrators.manage"] })).resolves.toMatchObject({ adminPermissions: ["administrators.manage"] });
+        await expect(createUserByAdmin({ actorId: limited.id, username: "too-powerful", password: "password123", role: "admin", adminPermissions: ["users.manage", "system.manage"] })).rejects.toMatchObject({ status: 403 });
+        await expect(createUserByAdmin({ actorId: limited.id, username: "peer", password: "password123", role: "admin", adminPermissions: ["users.manage"] })).resolves.toMatchObject({ adminPermissions: ["users.manage"] });
     });
 });

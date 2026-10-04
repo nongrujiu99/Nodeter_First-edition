@@ -264,7 +264,6 @@ export class CouponRepository {
         const result = await this.db.query(
             `DELETE FROM coupon_templates template
              WHERE template.id = $1 AND NOT EXISTS (SELECT 1 FROM user_coupons coupon WHERE coupon.template_id = template.id)
-               AND NOT EXISTS (SELECT 1 FROM referral_programs program WHERE program.invitee_coupon_template_id = template.id)
              RETURNING template.*, '[]'::jsonb AS product_ids`,
             [id],
         );

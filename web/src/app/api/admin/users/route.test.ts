@@ -19,7 +19,7 @@ import { GET, POST } from "./route";
 describe("admin users route", () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        mocks.getCurrentUser.mockResolvedValue({ id: "admin-one", role: "admin", status: "active", adminPermissions: ["users.read", "users.manage", "administrators.manage"], username: "admin" });
+        mocks.getCurrentUser.mockResolvedValue({ id: "admin-one", role: "admin", status: "active", adminPermissions: ["users.manage"], username: "admin" });
         mocks.listPublicUsersPage.mockResolvedValue({
             users: [{ id: "user-one", username: "creator" }],
             total: 51,

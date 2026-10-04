@@ -1,11 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { AdminAccountId } from "@/components/admin/admin-user-identity";
 import { createDefaultChannelAdvancedConfig } from "@/components/admin/admin-system-channel-editor";
 import { applyChannelProtocol } from "@/lib/channel-protocol-registry";
-import { formatCreditAmount } from "@/constant/credits";
-import type { CreatedCdkCode, PublicCdkCode, SystemChannelAdvancedConfig, SystemModelChannel } from "@/lib/auth/store";
+import type { SystemChannelAdvancedConfig, SystemModelChannel } from "@/lib/auth/store";
 import { nanoid } from "nanoid";
 import { urlHostMatches, urlPathStartsWith } from "@/lib/url-host";
 
@@ -43,30 +41,6 @@ export function SettingsAnchorItem({ href, icon, title, detail }: { href: string
                 <span className="mt-0.5 hidden truncate text-xs text-stone-500 sm:block dark:text-stone-400">{detail}</span>
             </span>
         </a>
-    );
-}
-
-export function FinanceFlowItem({ title, amount, description, icon }: { title: string; amount: string; description: string; icon: ReactNode }) {
-    return (
-        <div className="rounded-lg border border-stone-200 bg-white p-3 dark:border-stone-800 dark:bg-stone-950 sm:p-4">
-            <div className="flex items-start justify-between gap-2.5 sm:gap-3">
-                <div>
-                    <div className="text-xs text-stone-500 sm:text-sm dark:text-stone-400">{title}</div>
-                    <div className="mt-1 text-lg font-semibold tracking-normal text-stone-950 sm:mt-2 sm:text-2xl dark:text-stone-100">{amount}</div>
-                </div>
-                <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-stone-100 text-stone-700 [&>svg]:size-3.5 sm:size-9 sm:rounded-lg sm:[&>svg]:size-4 dark:bg-stone-900 dark:text-stone-200">{icon}</span>
-            </div>
-            <div className="mt-2 line-clamp-2 text-xs leading-5 text-stone-500 sm:mt-3 sm:line-clamp-none sm:text-sm sm:leading-6 dark:text-stone-400">{description}</div>
-        </div>
-    );
-}
-
-export function FinanceMiniRow({ label, value }: { label: string; value: string }) {
-    return (
-        <div className="flex items-center justify-between gap-3">
-            <span className="text-stone-500 dark:text-stone-400">{label}</span>
-            <span className="font-semibold text-stone-950 dark:text-stone-100">{value}</span>
-        </div>
     );
 }
 
@@ -126,87 +100,6 @@ export function modelNameFromOption(value: string) {
     if (!normalized) return "";
     const parts = normalized.split("::");
     return parts[parts.length - 1] || normalized;
-}
-
-export function isCdkExpired(code: PublicCdkCode) {
-    return Boolean(code.expiresAt && Date.parse(code.expiresAt) <= Date.now());
-}
-
-export function cdkStatusLabel(code: PublicCdkCode) {
-    if (!code.code) return "明文缺失";
-    if (isCdkExpired(code)) return "已过期";
-    if (code.status !== "active") return "不可用";
-    if (code.redeemedCount >= code.maxRedemptions) return "已兑完";
-    return code.redeemedCount > 0 ? "部分兑换" : "未兑换";
-}
-
-export function cdkStatusTone(code: PublicCdkCode) {
-    if (!code.code || isCdkExpired(code) || code.status !== "active") return "default";
-    if (code.redeemedCount >= code.maxRedemptions) return "green";
-    return code.redeemedCount > 0 ? "blue" : "gold";
-}
-
-export function formatCreatedCdkExport(codes: CreatedCdkCode[], siteTitle: string) {
-    const lines = [
-        `${siteTitle} CDK 导出`,
-        `导出时间：${new Date().toLocaleString("zh-CN", { hour12: false })}`,
-        `数量：${codes.length}`,
-        "",
-        ...codes.map((code, index) =>
-            [
-                `${index + 1}. ${code.code}`,
-                `积分：${formatCreditAmount(code.points)}`,
-                `可兑换次数：${code.maxRedemptions}`,
-                `有效期：${code.expiresAt ? new Date(code.expiresAt).toLocaleString("zh-CN", { hour12: false }) : "长期有效"}`,
-                code.note ? `备注：${code.note}` : "",
-            ]
-                .filter(Boolean)
-                .join(" | "),
-        ),
-        "",
-        "说明：仅导出本次生成且可复制的明文 CDK。",
-    ];
-    return lines.join("\n");
-}
-
-export function downloadTextFile(filename: string, text: string) {
-    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-}
-
-export function CdkRedemptionDetail({ code }: { code: PublicCdkCode }) {
-    const redemptions = [...code.redemptions].sort((a, b) => Date.parse(b.redeemedAt) - Date.parse(a.redeemedAt));
-    const visibleRedemptions = redemptions.slice(0, 20);
-
-    return (
-        <div className="rounded-lg border border-stone-200 bg-stone-50/80 p-3 dark:border-stone-800 dark:bg-stone-900/60">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <div className="text-sm font-semibold text-stone-950 dark:text-stone-100">兑换明细</div>
-                <div className="text-xs text-stone-500 dark:text-stone-400">
-                    共 {redemptions.length} 条{redemptions.length > visibleRedemptions.length ? "，展示最近 20 条" : ""}
-                </div>
-            </div>
-            <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-                {visibleRedemptions.map((item) => (
-                    <div key={`${item.userId}-${item.redeemedAt}`} className="min-w-0 rounded-md border border-stone-200 bg-white p-3 dark:border-stone-800 dark:bg-stone-950">
-                        <div className="truncate text-sm font-medium text-stone-900 dark:text-stone-100">
-                            {item.displayName}
-                            <span className="ml-1 font-normal text-stone-500 dark:text-stone-400">@{item.username}</span>
-                        </div>
-                        <AdminAccountId accountId={item.accountId} className="mt-0.5" />
-                        <div className="mt-1 text-xs text-stone-500 dark:text-stone-400">{new Date(item.redeemedAt).toLocaleString("zh-CN")}</div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
 }
 
 export function splitTags(value?: string) {

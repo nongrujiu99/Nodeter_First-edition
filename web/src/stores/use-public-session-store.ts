@@ -10,14 +10,7 @@ export type PublicSiteSettings = {
     title: string;
     logoUrl: string;
     iconUrl?: string;
-    seoDescription?: string;
     footerCopyright?: string;
-    termsUrl?: string;
-    termsVersion?: string;
-    privacyUrl?: string;
-    privacyVersion?: string;
-    friendLinks?: Array<{ id: string; label: string; url: string; enabled: boolean }>;
-    socials?: Record<string, { enabled: boolean; label: string; url: string }>;
 };
 
 type PublicSessionPayload = {

@@ -179,14 +179,6 @@
         display: none;
     }
 
-    .user-points-popover .ant-popover-inner {
-        width: min(13rem, calc(100vw - 44px));
-    }
-
-    .user-points-popover .user-points-panel {
-        width: min(13rem, calc(100vw - 48px)) !important;
-    }
-
     .canvas-zoom-controls {
         bottom: calc(env(safe-area-inset-bottom) + 74px);
         left: max(12px, env(safe-area-inset-left));
@@ -282,13 +274,5 @@
         min-height: 32px !important;
         min-width: 32px !important;
         width: 32px !important;
-    }
-
-    .user-points-popover .ant-popover-inner {
-        width: min(12.5rem, calc(100vw - 40px));
-    }
-
-    .user-points-popover .user-points-panel {
-        width: min(12.5rem, calc(100vw - 44px)) !important;
     }
 }

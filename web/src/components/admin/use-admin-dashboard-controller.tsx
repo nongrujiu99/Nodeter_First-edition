@@ -16,20 +16,6 @@ export type AdminDashboardProps = {
     setupSummary?: AdminSetupSummary;
     headerActions?: ReactNode;
 };
-export type PromptFormValue = {
-    title: string;
-    prompt: string;
-    category?: string;
-    tags?: string;
-    coverUrl?: string;
-    preview?: string;
-};
-
-export const PROMPT_PAGE_SIZE = 20;
-export const PROMPT_SEARCH_DEBOUNCE_MS = 300;
-export const USER_PAGE_SIZE = 20;
-export const CDK_PAGE_SIZE = 20;
-export const GENERATION_LOG_PAGE_SIZE = 20;
 
 import { useAdminDashboardDataActions } from "./use-admin-dashboard-data-actions";
 import { useAdminDashboardEffects } from "./use-admin-dashboard-effects";

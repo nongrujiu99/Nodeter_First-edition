@@ -19,7 +19,7 @@ import { DELETE, PATCH } from "./route";
 describe("admin user detail route", () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        mocks.getCurrentUser.mockResolvedValue({ id: "admin-one", role: "admin", status: "active", adminPermissions: ["users.manage", "administrators.manage", "billing.manage"] });
+        mocks.getCurrentUser.mockResolvedValue({ id: "admin-one", role: "admin", status: "active", adminPermissions: ["users.manage", "billing.manage"] });
         mocks.updateUserByAdmin.mockResolvedValue({ id: "user-one", username: "creator", role: "user", status: "active" });
         mocks.deleteAdminUserWithMediaCleanup.mockResolvedValue({ ok: true });
     });

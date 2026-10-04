@@ -106,10 +106,6 @@ describe("PostgreSQL schema lifecycle", () => {
         expect(ddl).toContain("CREATE SEQUENCE IF NOT EXISTS vozeb_pro_user_account_id_seq");
         expect(ddl).toContain("account_id bigint NOT NULL DEFAULT nextval('vozeb_pro_user_account_id_seq')");
         expect(ddl).toMatch(/SELECT setval\(\s*'vozeb_pro_user_account_id_seq'/);
-        expect(ddl).toContain("users.read");
-        expect(ddl).toContain("users.manage");
-        expect(ddl).not.toContain("vozeb_pro_users.read");
-        expect(ddl).not.toContain("vozeb_pro_users.manage");
         expect(ddl).toContain("terms_version text");
         expect(ddl).toContain("policy_accepted_at timestamptz");
         expect(ddl).toContain("mfa_secret_ciphertext text");
@@ -125,12 +121,11 @@ describe("PostgreSQL schema lifecycle", () => {
         expect(ddl).toContain("signature_timestamp timestamptz NOT NULL");
         expect(ddl).toContain("conflict_count integer NOT NULL DEFAULT 0");
         expect(ddl).toContain("user_id text NOT NULL REFERENCES vozeb_pro_users(id) ON DELETE CASCADE");
-        expect(ddl).toContain("CREATE TABLE IF NOT EXISTS vozeb_pro_account_deletion_requests");
         expect(ddl).toContain("'review_pending', 'reviewing', 'review_unavailable'");
         expect(ddl).toContain("task_type = 'agent' AND status = 'success' AND execution_phase IN ('review_pending', 'reviewing')");
 
         const tableNames = [...ddl.matchAll(/CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+([a-z][a-z0-9_]*)/gi)].map((match) => match[1]).sort();
-        expect(tableNames).toHaveLength(60);
+        expect(tableNames).toHaveLength(59);
         expect(tableNames).toContain("vozeb_pro_generation_concurrency_reservations");
         expect(tableNames.every((name) => name.startsWith("vozeb_pro_"))).toBe(true);
         expect(tableNames).not.toContain("vozeb_pro_check_ins");

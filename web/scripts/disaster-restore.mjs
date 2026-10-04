@@ -48,7 +48,7 @@ try {
     const objectStorageConfig = await loadDisasterObjectStorageConfig({ databaseUrl, dataDir, encryptionKey: process.env.VOZEB_PRO_ENCRYPTION_KEY });
     const objectStorage = await restoreObjectStorage(objectStorageConfig, manifest.objectStorage, recoveryPointDir);
     await writeJsonAtomic(path.join(safetyDir, "restore-report.json"), {
-        app: "VOZEB PRO",
+        app: "Nodeter",
         recoveryPointId: manifest.recoveryPointId,
         startedAt,
         completedAt: new Date().toISOString(),

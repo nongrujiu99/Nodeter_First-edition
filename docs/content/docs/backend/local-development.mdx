@@ -1,6 +1,6 @@
 ---
 title: 本地开发
-description: 使用 Node.js、pnpm 和 PostgreSQL 开发 VOZEB PRO
+description: 使用 Node.js、pnpm 和 PostgreSQL 开发 Nodeter
 ---
 
 # 本地开发
@@ -55,7 +55,7 @@ pnpm install --frozen-lockfile
 pnpm run dev
 ```
 
-独立文档站固定访问 `http://localhost:3001`。`http://localhost:3000` 只属于 `web/` 主应用；如果该地址显示“VOZEB PRO 文档中心”，说明启动了 `docs/` 子项目或旧版文档脚本，而不是主应用。
+独立文档站固定访问 `http://localhost:3001`。`http://localhost:3000` 只属于 `web/` 主应用；如果该地址显示“Nodeter 文档中心”，说明启动了 `docs/` 子项目或旧版文档脚本，而不是主应用。
 
 ## 常用检查
 
@@ -73,7 +73,7 @@ npm run build
 ## 目录
 
 - `web/src/app/`：页面与 Route Handler。
-- `web/src/lib/server/`：服务端任务、鉴权、模型路由、计费和存储逻辑。
+- `web/src/lib/server/`：服务端任务、鉴权、模型路由和存储逻辑。
 - `web/src/services/api/`：浏览器 API 客户端。
 - `web/src/stores/`：Zustand 状态。
 - `docs/content/docs/`：文档内容。

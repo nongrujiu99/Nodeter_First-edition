@@ -26,19 +26,11 @@ export type AuditStatus = "success" | "failure";
 export type BillingOrderStatus = "pending" | "paid" | "closed" | "canceled" | "refunding" | "refunded";
 export type BillingProductKind = "plan" | "points";
 export type PaymentTransactionStatus = "pending" | "succeeded" | "failed" | "refunded";
-export type BillingReconciliationRunStatus = "completed" | "failed";
-export type BillingReconciliationSource = "csv" | "provider-api" | "manual";
-export type BillingReconciliationStatementStatus = "paid" | "refunded" | "pending" | "failed" | "unknown";
 export type PlanAssignmentStatus = "active" | "expired" | "canceled";
 export type PlanAssignmentSource = "admin" | "order" | "cdk" | "system";
 export type CouponDiscountType = "fixed" | "percentage";
 export type UserCouponStatus = "available" | "locked" | "redeemed" | "expired" | "revoked";
 export type CouponRedemptionStatus = "redeemed" | "refunded";
-export type ReferralInviteeRewardType = "points" | "coupon";
-export type ReferralRiskStatus = "clear" | "review" | "frozen" | "rejected";
-export type ReferralRewardStatus = "pending" | "settled" | "revoked" | "rejected" | "reversal_pending";
-export type ReferralRewardType = "points" | "coupon";
-export type ReferralBeneficiaryRole = "inviter" | "invitee";
 
 export type UserRecord = {
     id: string;
@@ -246,19 +238,6 @@ export type CdkListResult = PageResult<CdkListCodeRecord> & {
     };
 };
 
-export type AnnouncementRecord = {
-    id: string;
-    title: string;
-    content: string;
-    enabled: boolean;
-    popupHome: boolean;
-    popupAfterLogin: boolean;
-    startsAt?: string;
-    endsAt?: string;
-    createdAt: string;
-    updatedAt: string;
-};
-
 export type PromptRecord = {
     id: string;
     scope: PromptScope;
@@ -363,24 +342,6 @@ export type BillingOrderRecord = {
     updatedAt: string;
 };
 
-export type PromotionProductRecord = {
-    productId: string;
-    promotionalAmountCents: number;
-};
-
-export type PromotionCampaignRecord = {
-    id: string;
-    name: string;
-    label: string;
-    enabled: boolean;
-    startsAt: string;
-    endsAt: string;
-    createdByUserId?: string;
-    products: PromotionProductRecord[];
-    createdAt: string;
-    updatedAt: string;
-};
-
 export type CouponTemplateRecord = {
     id: string;
     code: string;
@@ -441,100 +402,6 @@ export type CouponRedemptionRecord = {
     updatedAt: string;
 };
 
-export type ReferralProgramRecord = {
-    id: "default";
-    enabled: boolean;
-    inviterPoints: number;
-    inviteeRewardType: ReferralInviteeRewardType;
-    inviteePoints: number;
-    inviteeCouponTemplateId?: string;
-    minimumPaidCents: number;
-    coolingOffDays: number;
-    inviterMonthlyLimit: number;
-    campaignTotalLimit: number;
-    autoFreezeRisk: boolean;
-    createdByUserId?: string;
-    updatedByUserId?: string;
-    createdAt: string;
-    updatedAt: string;
-};
-
-export type ReferralCodeRecord = {
-    id: string;
-    userId: string;
-    code: string;
-    enabled: boolean;
-    clickCount: number;
-    lastClickedAt?: string;
-    createdAt: string;
-    updatedAt: string;
-};
-
-export type ReferralRelationshipRecord = {
-    id: string;
-    inviterUserId: string;
-    inviteeUserId: string;
-    referralCodeId: string;
-    attributionSource: string;
-    attributionMetadata: JsonValue;
-    registrationIpHash?: string;
-    paymentIdentityHash?: string;
-    riskStatus: ReferralRiskStatus;
-    riskSignals: JsonValue;
-    registeredAt: string;
-    createdAt: string;
-    updatedAt: string;
-    code?: string;
-    inviterUsername?: string;
-    inviterDisplayName?: string;
-    inviterAccountId?: string;
-    inviteeUsername?: string;
-    inviteeDisplayName?: string;
-    inviteeAccountId?: string;
-};
-
-export type ReferralRewardRecord = {
-    id: string;
-    relationshipId: string;
-    beneficiaryUserId: string;
-    beneficiaryRole: ReferralBeneficiaryRole;
-    rewardType: ReferralRewardType;
-    pointsAmount: number;
-    couponTemplateId?: string;
-    triggerOrderId: string;
-    status: ReferralRewardStatus;
-    settleAfter: string;
-    walletRecordId?: string;
-    reversalWalletRecordId?: string;
-    userCouponId?: string;
-    reason?: string;
-    settledAt?: string;
-    revokedAt?: string;
-    createdAt: string;
-    updatedAt: string;
-    beneficiaryUsername?: string;
-    beneficiaryDisplayName?: string;
-    beneficiaryAccountId?: string;
-};
-
-export type BillingProductRecord = {
-    id: string;
-    productKind: BillingProductKind;
-    planId?: string;
-    name: string;
-    description: string;
-    amountCents: number;
-    currency: string;
-    pointsAmount: number;
-    dailyPoints: number;
-    periodDays: number;
-    enabled: boolean;
-    sortOrder: number;
-    metadata?: JsonValue;
-    createdAt: string;
-    updatedAt: string;
-};
-
 export type PaymentTransactionRecord = {
     id: string;
     orderId: string;
@@ -554,52 +421,6 @@ export type PaymentTransactionRecord = {
     updatedAt: string;
 };
 
-export type BillingReconciliationRunRecord = {
-    id: string;
-    provider: string;
-    source: BillingReconciliationSource;
-    status: BillingReconciliationRunStatus;
-    totalRows: number;
-    matchedRows: number;
-    okRows: number;
-    issueRows: number;
-    statementPaidAmountCents: number;
-    statementRefundedAmountCents: number;
-    localMatchedAmountCents: number;
-    differenceAmountCents: number;
-    importedByUserId?: string;
-    importedByUsername?: string;
-    fileName?: string;
-    fileHash?: string;
-    note?: string;
-    metadata?: JsonValue;
-    createdAt: string;
-    updatedAt: string;
-};
-
-export type BillingReconciliationRowRecord = {
-    id: string;
-    runId: string;
-    rowNumber: number;
-    rowKey: string;
-    provider: string;
-    orderNo?: string;
-    providerOrderId?: string;
-    providerPaymentId?: string;
-    statementStatus: BillingReconciliationStatementStatus;
-    amountCents?: number;
-    currency?: string;
-    localOrderId?: string;
-    localOrderNo?: string;
-    localOrderStatus?: string;
-    localAmountCents?: number;
-    localCurrency?: string;
-    issueCodes: JsonValue;
-    issues: JsonValue;
-    createdAt: string;
-    updatedAt: string;
-};
-
 export type UserPlanAssignmentRecord = {
     id: string;
     userId: string;
@@ -612,67 +433,6 @@ export type UserPlanAssignmentRecord = {
     metadata?: JsonValue;
     createdAt: string;
     updatedAt: string;
-};
-
-export type PaymentProviderEventRecord = {
-    id: string;
-    provider: string;
-    eventId?: string;
-    eventType: string;
-    orderId?: string;
-    signatureValid: boolean;
-    payload?: JsonValue;
-    processingAt?: string;
-    processedAt?: string;
-    error?: string;
-    createdAt: string;
-    updatedAt: string;
-};
-
-export type BillingSummaryProviderRecord = {
-    provider: string;
-    totalOrders: number;
-    pendingOrders: number;
-    paidOrders: number;
-    refundedOrders: number;
-    paidAmountCents: number;
-    refundedAmountCents: number;
-};
-
-export type BillingSummaryRecord = {
-    orders: {
-        total: number;
-        pending: number;
-        paid: number;
-        closed: number;
-        canceled: number;
-        refunded: number;
-        grossAmountCents: number;
-        paidAmountCents: number;
-        pendingAmountCents: number;
-        refundedAmountCents: number;
-    };
-    payments: {
-        succeeded: number;
-        refunded: number;
-        succeededAmountCents: number;
-        refundedAmountCents: number;
-    };
-    commerce: {
-        convertedOrders: number;
-        promotionOrders: number;
-        promotionConvertedOrders: number;
-        promotionDiscountCents: number;
-        couponOrders: number;
-        couponConvertedOrders: number;
-        couponDiscountCents: number;
-    };
-    providers: BillingSummaryProviderRecord[];
-    reconciliation: {
-        paidOrdersWithoutSucceededPayment: number;
-        succeededPaymentsWithoutPaidOrder: number;
-        amountMismatchPayments: number;
-    };
 };
 
 export type PublishedWorkSourceType = "media" | "canvas" | "drama";

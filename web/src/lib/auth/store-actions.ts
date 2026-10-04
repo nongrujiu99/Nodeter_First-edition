@@ -33,15 +33,7 @@ import {
     type CreatedCdkCode,
     type StoredCdkRedemption,
     type StoredCdkCode,
-    type PublicAnnouncement,
-    type AnnouncementPage,
-    type AnnouncementPageInput,
     type SiteSettings,
-    type SiteFriendLink,
-    type SiteSocialKey,
-    type SiteSocialSettings,
-    DEFAULT_SITE_SOCIALS,
-    DEFAULT_SITE_FRIEND_LINKS,
     type MailSettings,
     type PublicUser,
     type PublicUserSummary,
@@ -69,7 +61,7 @@ import {
     AUTH_DATA_FILE,
     USERNAME_PATTERN,
 } from "./store-foundation";
-import { readAuthDb, mutateAuthDb, readPostgresAnnouncementsPage, readPostgresCdkListData } from "./store-repository";
+import { readAuthDb, mutateAuthDb, readPostgresCdkListData } from "./store-repository";
 
 import {
     normalizeDb,
@@ -98,9 +90,6 @@ import {
     normalizeFeatureList,
     normalizeGenerationConcurrency,
     normalizeSiteSettings,
-    normalizeSiteFriendLinks,
-    normalizeSiteSocials,
-    normalizeSiteSocial,
     normalizeMailSettings,
     normalizeSecretText,
     normalizeText,
@@ -131,8 +120,6 @@ import {
     generateCdkPlainCode,
     formatCdkCodeForDisplay,
     previewCdkCode,
-    normalizeAnnouncement,
-    isAnnouncementVisible,
     normalizeOptionalIsoDate,
     resolveCdkExpiresAt,
     normalizePointRecord,
@@ -574,92 +561,6 @@ export async function redeemCdkCode(userId: string, rawCode: string) {
     });
 }
 
-export async function listAnnouncements(includeDisabled = false) {
-    return (await listAnnouncementsPage(includeDisabled, { page: 1, pageSize: 100 })).items;
-}
-
-export async function listAnnouncementsPage(includeDisabled = false, input: AnnouncementPageInput = {}): Promise<AnnouncementPage> {
-    const requestedPage = Number(input.page);
-    const requestedPageSize = Number(input.pageSize);
-    const page = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
-    const pageSize = Number.isSafeInteger(requestedPageSize) && requestedPageSize > 0 ? Math.min(100, requestedPageSize) : 20;
-    if (isPostgresDatabaseEnabled()) return readPostgresAnnouncementsPage({ includeDisabled, page, pageSize });
-
-    const announcements = (await readAuthDb()).announcements.filter((announcement) => includeDisabled || isAnnouncementVisible(announcement)).sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt) || b.id.localeCompare(a.id));
-    return {
-        items: announcements.slice((page - 1) * pageSize, page * pageSize),
-        total: announcements.length,
-        page,
-        pageSize,
-    };
-}
-
-export async function createAnnouncement(input: Partial<PublicAnnouncement>) {
-    const now = new Date().toISOString();
-    const announcement = normalizeAnnouncement({
-        id: randomUUID(),
-        title: input.title || "",
-        content: input.content || "",
-        enabled: input.enabled !== false,
-        popupHome: input.popupHome === true,
-        popupAfterLogin: input.popupAfterLogin === true,
-        startsAt: input.startsAt,
-        endsAt: input.endsAt,
-        createdAt: now,
-        updatedAt: now,
-    });
-    if (!announcement.title || !announcement.content) throw new AuthInputError("请填写公告标题和内容");
-    if (isPostgresDatabaseEnabled()) {
-        await ensurePostgresSchema();
-        return createPostgresRepositories().announcements.upsert(announcement);
-    }
-    return mutateAuthDb((db) => {
-        db.announcements.push(announcement);
-        return announcement;
-    });
-}
-
-export async function updateAnnouncement(id: string, patch: Partial<PublicAnnouncement>) {
-    if (isPostgresDatabaseEnabled()) {
-        await ensurePostgresSchema();
-        return withPostgresTransaction(async (client) => {
-            const announcements = createPostgresRepositories(client).announcements;
-            const current = await announcements.getById(id, true);
-            if (!current) throw new AuthInputError("公告不存在");
-            const next = normalizeAnnouncement({ ...current, ...patch, id, updatedAt: new Date().toISOString() });
-            if (!next.title || !next.content) throw new AuthInputError("请填写公告标题和内容");
-            return announcements.upsert(next);
-        });
-    }
-    return mutateAuthDb((db) => {
-        const index = db.announcements.findIndex((announcement) => announcement.id === id);
-        if (index < 0) throw new AuthInputError("公告不存在");
-        const next = normalizeAnnouncement({
-            ...db.announcements[index],
-            ...patch,
-            id,
-            updatedAt: new Date().toISOString(),
-        });
-        if (!next.title || !next.content) throw new AuthInputError("请填写公告标题和内容");
-        db.announcements[index] = next;
-        return next;
-    });
-}
-
-export async function deleteAnnouncement(id: string) {
-    if (isPostgresDatabaseEnabled()) {
-        await ensurePostgresSchema();
-        if (!(await createPostgresRepositories().announcements.delete(id))) throw new AuthInputError("公告不存在");
-        return { ok: true };
-    }
-    return mutateAuthDb((db) => {
-        const before = db.announcements.length;
-        db.announcements = db.announcements.filter((announcement) => announcement.id !== id);
-        if (before === db.announcements.length) throw new AuthInputError("公告不存在");
-        return { ok: true };
-    });
-}
-
 export function toPublicPointRecord(record: StoredPointRecord): PublicPointRecord {
     const publicRecord = { ...record };
     delete publicRecord.requestFingerprint;
@@ -686,83 +587,45 @@ export function legacyPointUsageKindFromModel(model: string): PointUsageKind {
 }
 
 export async function consumeUserPoints(userId: string, model: string, amount = 1, usageKind: PointUsageKind = "api", idempotencyKey?: string, requestFingerprint?: string) {
+    void amount;
+    void idempotencyKey;
+    void requestFingerprint;
     const normalizedModel = model.trim();
     const db = isPostgresDatabaseEnabled() ? null : await readAuthDb();
     const user = db?.users.find((item) => item.id === userId);
     if (db && (!user || user.status !== "active")) throw new AuthInputError("用户不可用");
-    const settings = db ? db.settings : await getAuthSettings();
-    const multiplier = resolveModelPointCost(settings.modelPointCosts, normalizedModel, settings.logicalModels);
-    const units = Math.min(1000, normalizePointAmount(amount, 1));
-    const cost = normalizePointAmount(units * multiplier, 0);
-    const operationKey = idempotencyKey?.trim() || `points-consume:${randomUUID()}`;
-    const result = await consumePoints({
-        userId,
-        amount: cost,
-        units,
-        usageKind,
-        model: normalizedModel,
-        description: buildPointRecordDescription(normalizedModel, usageKind, "consume"),
-        idempotencyKey: operationKey,
-        requestFingerprint,
-    });
     return {
         model: normalizedModel,
-        units,
-        multiplier,
-        cost,
-        remaining: result.snapshot.totalPoints,
-        permanentRemaining: result.snapshot.permanentPoints,
-        dailyRemaining: result.snapshot.dailyPoints,
-        dailyExpiresAt: result.snapshot.dailyExpiresAt,
+        units: 0,
+        multiplier: 0,
+        cost: 0,
+        remaining: 0,
+        permanentRemaining: 0,
+        dailyRemaining: 0,
+        dailyExpiresAt: undefined as string | undefined,
         usageKind,
-        planId: result.snapshot.activePlanId || (db && user ? resolveUserPlan(db, user).id : DEFAULT_ENTITLEMENT_PLAN_ID),
-        recordId: result.record.id,
-        idempotencyKey: result.record.idempotencyKey,
+        planId: db && user ? resolveUserPlan(db, user).id : DEFAULT_ENTITLEMENT_PLAN_ID,
+        recordId: undefined as string | undefined,
+        idempotencyKey: undefined as string | undefined,
     };
 }
 
 export async function refundUserPoints(userId: string, model: string, amount: number, usageKind: PointUsageKind = "api", units = 0, idempotencyKey?: string, sourceRecordId?: string) {
-    const refund = normalizePointAmount(amount, 0);
-    const sourceId = sourceRecordId?.trim();
+    void model;
+    void amount;
+    void usageKind;
+    void units;
+    void idempotencyKey;
+    void sourceRecordId;
+    const clock = walletClock();
     if (isPostgresDatabaseEnabled()) {
-        const clock = walletClock();
-        if (!refund && !sourceId) {
-            const details = await createPostgresRepositories().users.getPublicDetails([userId], { now: clock.now.toISOString(), date: clock.date });
-            const user = details[0];
-            return user ? publicUserFromAuthenticatedRecord(user, clock.expiresAt) : null;
-        }
-        if (!sourceId) throw new AuthInputError("退款缺少原消费流水");
-        const result = await refundPoints({
-            userId,
-            sourceRecordId: sourceId,
-            idempotencyKey: idempotencyKey?.trim() || `points-refund:${sourceId}`,
-            usageKind,
-            units: normalizePointAmount(units, 0),
-            model: model.trim(),
-            description: buildPointRecordDescription(model, usageKind, "refund"),
-        });
         const details = await createPostgresRepositories().users.getPublicDetails([userId], { now: clock.now.toISOString(), date: clock.date });
         const user = details[0];
-        return user ? { ...publicUserFromAuthenticatedRecord(user, result.snapshot.dailyExpiresAt), pointsBalance: result.snapshot.totalPoints } : null;
+        return user ? publicUserFromAuthenticatedRecord(user, clock.expiresAt) : null;
     }
     const db = await readAuthDb();
     const user = db.users.find((item) => item.id === userId);
-    if (!user) return null;
-    if (!refund && !sourceId) return toPublicUser(user, db);
-
-    if (!sourceId) throw new AuthInputError("退款缺少原消费流水");
-    const result = await refundPoints({
-        userId,
-        sourceRecordId: sourceId,
-        idempotencyKey: idempotencyKey?.trim() || `points-refund:${sourceId}`,
-        usageKind,
-        units: normalizePointAmount(units, 0),
-        model: model.trim(),
-        description: buildPointRecordDescription(model, usageKind, "refund"),
-    });
-    const nextDb = await readAuthDb();
-    const nextUser = nextDb.users.find((item) => item.id === userId);
-    return nextUser ? { ...toPublicUser(nextUser, nextDb), pointsBalance: result.snapshot.totalPoints } : null;
+    return user ? toPublicUser(user, db) : null;
 }
 
 export { createSession, deleteSession, deleteUserByAdmin, getUserBySession, resetPasswordByEmail, updateOwnPassword, updateOwnProfile, updateUserByAdmin, verifyUserPasswordForSensitiveAction } from "./store-account-actions";

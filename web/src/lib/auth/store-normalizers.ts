@@ -35,13 +35,7 @@ import {
     type CreatedCdkCode,
     type StoredCdkRedemption,
     type StoredCdkCode,
-    type PublicAnnouncement,
     type SiteSettings,
-    type SiteFriendLink,
-    type SiteSocialKey,
-    type SiteSocialSettings,
-    DEFAULT_SITE_SOCIALS,
-    DEFAULT_SITE_FRIEND_LINKS,
     type MailSettings,
     type PublicUser,
     type StoredUser,
@@ -122,13 +116,12 @@ export function normalizeDb(db: Partial<AuthDatabase>): AuthDatabase {
         dailyPlanPointWallets: Array.isArray(db.dailyPlanPointWallets) ? db.dailyPlanPointWallets.map(normalizeDailyPlanPointWallet).filter((item) => item.userId && item.date) : [],
         emailCodes: Array.isArray(db.emailCodes) ? db.emailCodes.map(normalizeEmailCode).filter((item) => item.email) : [],
         cdkCodes: Array.isArray(db.cdkCodes) ? db.cdkCodes.map(normalizeCdkCodeRecord).filter((item) => item.codeHash) : [],
-        announcements: Array.isArray(db.announcements) ? db.announcements.map(normalizeAnnouncement).filter((item) => item.title && item.content) : [],
         settings,
     };
 }
 
 export function emptyDb(): AuthDatabase {
-    return { version: 1, nextUserAccountId: 1, users: [], sessions: [], quotaUsage: [], pointRecords: [], dailyPlanPointWallets: [], emailCodes: [], cdkCodes: [], announcements: [], settings: DEFAULT_SETTINGS };
+    return { version: 1, nextUserAccountId: 1, users: [], sessions: [], quotaUsage: [], pointRecords: [], dailyPlanPointWallets: [], emailCodes: [], cdkCodes: [], settings: DEFAULT_SETTINGS };
 }
 
 export function encryptAuthDbSecretsForStorage(db: AuthDatabase): AuthDatabase {
@@ -451,21 +444,11 @@ export function normalizeDataLifecycle(settings: Partial<DataLifecycleSettings> 
 
 export function normalizeSiteSettings(settings: Partial<SiteSettings> | undefined): SiteSettings {
     const title = normalizeText(settings?.title, DEFAULT_SITE_SETTINGS.title, 40);
-    const seoTitle = normalizeBrandDefault(settings?.seoTitle, DEFAULT_SITE_SETTINGS.seoTitle, title, title, 72);
     return {
         title,
         logoUrl: normalizeLogoUrl(settings?.logoUrl),
         iconUrl: normalizeSiteIconUrl(settings?.iconUrl),
-        seoTitle,
-        seoDescription: normalizeText(settings?.seoDescription, DEFAULT_SITE_SETTINGS.seoDescription, 180),
-        seoKeywords: normalizeBrandDefault(settings?.seoKeywords, DEFAULT_SITE_SETTINGS.seoKeywords, title, DEFAULT_SITE_SETTINGS.seoKeywords.replace(DEFAULT_SITE_SETTINGS.title, title), 240),
         footerCopyright: normalizeBrandDefault(settings?.footerCopyright, DEFAULT_SITE_SETTINGS.footerCopyright, title, DEFAULT_SITE_SETTINGS.footerCopyright.replace(DEFAULT_SITE_SETTINGS.title, title), 120),
-        termsUrl: normalizeLinkUrl(settings?.termsUrl, DEFAULT_SITE_SETTINGS.termsUrl),
-        termsVersion: normalizeText(settings?.termsVersion, DEFAULT_SITE_SETTINGS.termsVersion, 80),
-        privacyUrl: normalizeLinkUrl(settings?.privacyUrl, DEFAULT_SITE_SETTINGS.privacyUrl),
-        privacyVersion: normalizeText(settings?.privacyVersion, DEFAULT_SITE_SETTINGS.privacyVersion, 80),
-        friendLinks: normalizeSiteFriendLinks(settings?.friendLinks, title),
-        socials: normalizeSiteSocials(settings?.socials),
     };
 }
 
@@ -473,60 +456,6 @@ function normalizeBrandDefault(value: unknown, defaultValue: string, siteTitle: 
     const text = typeof value === "string" ? value.trim() : "";
     if (!text || (siteTitle !== DEFAULT_SITE_SETTINGS.title && text === defaultValue)) return fallback.slice(0, maxLength);
     return normalizeText(text, fallback, maxLength);
-}
-
-export function normalizeSiteFriendLinks(settings: unknown, siteTitle = DEFAULT_SITE_SETTINGS.title): SiteFriendLink[] {
-    const links = Array.isArray(settings) ? settings : DEFAULT_SITE_FRIEND_LINKS;
-    return links
-        .map((link, index) => {
-            const value = link as Partial<SiteFriendLink>;
-            const defaultHomeLink = value.id === "vozeb-pro-home" && value.url?.replace(/\/$/, "") === "https://www.vozeb.com";
-            return {
-                id: normalizeText(value.id, `friend-${index + 1}`, 80),
-                label: normalizeText(defaultHomeLink && (!value.label || value.label === DEFAULT_SITE_SETTINGS.title) ? siteTitle : value.label, "友情链接", 32),
-                url: normalizeLinkUrl(value.url, ""),
-                enabled: value.enabled !== false,
-            };
-        })
-        .filter((link) => link.url)
-        .slice(0, 12);
-}
-
-export function normalizeSiteSocials(settings: Partial<SiteSocialSettings> | undefined): SiteSocialSettings {
-    return {
-        email: normalizeSiteSocial("email", settings?.email),
-        telegram: normalizeSiteSocial("telegram", settings?.telegram),
-        x: normalizeSiteSocial("x", settings?.x),
-        instagram: normalizeSiteSocial("instagram", settings?.instagram),
-    };
-}
-
-export function normalizeSiteSocial(key: SiteSocialKey, setting: Partial<SiteSocialSettings[SiteSocialKey]> | undefined) {
-    const fallback = DEFAULT_SITE_SOCIALS[key];
-    if (!setting) return { ...fallback };
-    return {
-        enabled: typeof setting.enabled === "boolean" ? setting.enabled : fallback.enabled,
-        label: setting.label === undefined ? fallback.label : normalizeText(setting.label, "", 32),
-        url: setting.url === undefined ? fallback.url : normalizeSiteSocialUrl(key, setting.url),
-    };
-}
-
-function normalizeSiteSocialUrl(key: SiteSocialKey, value: unknown) {
-    const url = typeof value === "string" ? value.trim() : "";
-    if (!url) return "";
-    if (url.startsWith("mailto:")) return normalizeLinkUrl(url, "");
-    if (key === "email" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(url)) return `mailto:${url}`;
-    if (url.startsWith("@")) {
-        const handle = url.slice(1);
-        if (key === "telegram" && /^[a-zA-Z0-9_]{5,32}$/.test(handle)) return `https://t.me/${handle}`;
-        if (key === "x" && /^[a-zA-Z0-9_]{1,15}$/.test(handle)) return `https://x.com/${handle}`;
-        if (key === "instagram" && /^[a-zA-Z0-9._]{1,30}$/.test(handle)) return `https://instagram.com/${handle}`;
-    }
-    const socialHost = url.replace(/^\/+/, "");
-    if (key === "telegram" && /^(?:www\.)?(?:t\.me|telegram\.me)\//i.test(socialHost)) return `https://${socialHost}`;
-    if (key === "x" && /^(?:www\.)?(?:x\.com|twitter\.com)\//i.test(socialHost)) return `https://${socialHost}`;
-    if (key === "instagram" && /^(?:www\.)?instagram\.com\//i.test(socialHost)) return `https://${socialHost}`;
-    return normalizeLinkUrl(url, "");
 }
 
 export function normalizeMailSettings(settings: Partial<MailSettings> | undefined, siteTitle = DEFAULT_SITE_SETTINGS.title): MailSettings {
@@ -555,9 +484,7 @@ export function normalizeText(value: unknown, fallback: string, maxLength: numbe
 }
 
 export function repairKnownMojibakeText(value: string) {
-    if (value.includes("VOZEB PRO") && value.includes("AI") && !value.includes("绘图") && value.includes(",")) return DEFAULT_SITE_SETTINGS.seoKeywords;
-    if (value.includes("VOZEB PRO") && value.includes("AI") && !value.includes("工作台")) return DEFAULT_SITE_SETTINGS.seoDescription;
-    if (value.includes("2026 VOZEB PRO") && !value.startsWith("©")) return "© 2026 VOZEB PRO. All rights reserved.";
+    if (value.includes("2026 Nodeter") && !value.startsWith("©")) return "© 2026 Nodeter. All rights reserved.";
     if (value.startsWith("QQ ") && !value.includes("邮箱")) return "QQ 邮箱";
     return repairUtf8MojibakeText(value);
 }
@@ -784,32 +711,6 @@ export function previewCdkCode(value: string) {
     const code = normalizeCdkCode(value);
     if (code.length <= 8) return `${code.slice(0, 2)}****`;
     return `${code.slice(0, 4)}****${code.slice(-4)}`;
-}
-
-export function normalizeAnnouncement(value: Partial<PublicAnnouncement>): PublicAnnouncement {
-    const now = new Date().toISOString();
-    const startsAt = normalizeOptionalIsoDate(value.startsAt);
-    const endsAt = normalizeOptionalIsoDate(value.endsAt);
-    return {
-        id: value.id || randomUUID(),
-        title: normalizeText(value.title, "", 80),
-        content: normalizeText(value.content, "", 3000),
-        enabled: value.enabled !== false,
-        popupHome: value.popupHome === true,
-        popupAfterLogin: value.popupAfterLogin === true,
-        ...(startsAt ? { startsAt } : {}),
-        ...(endsAt ? { endsAt } : {}),
-        createdAt: value.createdAt || now,
-        updatedAt: value.updatedAt || value.createdAt || now,
-    };
-}
-
-export function isAnnouncementVisible(announcement: PublicAnnouncement) {
-    if (!announcement.enabled) return false;
-    const now = Date.now();
-    if (announcement.startsAt && Date.parse(announcement.startsAt) > now) return false;
-    if (announcement.endsAt && Date.parse(announcement.endsAt) <= now) return false;
-    return true;
 }
 
 export function normalizeOptionalIsoDate(value: unknown) {

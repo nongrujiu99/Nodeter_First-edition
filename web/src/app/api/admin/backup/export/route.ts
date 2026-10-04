@@ -18,7 +18,7 @@ export async function POST(request: Request) {
         const exportedAt = new Date().toISOString();
         const data = await readAdminBackupData();
         const backup = {
-            app: "VOZEB PRO",
+            app: "Nodeter",
             version: 1,
             backupType: "account-config",
             exportedAt,
@@ -26,10 +26,6 @@ export async function POST(request: Request) {
                 auth: sanitizeAuthBackup(data.auth),
                 prompts: data.prompts,
                 generationLogs: data.generationLogs,
-                accountDeletionRequests: {
-                    version: 1,
-                    requests: data.accountDeletionRequests.requests.map(({ email: _email, ...item }) => item),
-                },
             },
         };
         await safeRecordAuditLog({

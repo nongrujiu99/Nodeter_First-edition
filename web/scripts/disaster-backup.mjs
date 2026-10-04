@@ -53,7 +53,7 @@ try {
     const objectStorage = await backupObjectStorage(objectStorageConfig, recoveryPointDir);
     const completedAt = new Date().toISOString();
     const manifest = {
-        app: "VOZEB PRO",
+        app: "Nodeter",
         formatVersion: DISASTER_FORMAT_VERSION,
         recoveryPointId,
         backupType: "disaster",

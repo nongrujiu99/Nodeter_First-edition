@@ -5,12 +5,10 @@ import { LoaderCircle, Maximize2, Minimize2, Square } from "lucide-react";
 import { Button, Modal, Tooltip } from "antd";
 
 import { ModelPicker } from "@/components/model-picker";
-import { CreditSymbol, formatCreditAmount, requestCreditCost } from "@/constant/credits";
 import { defaultConfig, useConfigStore, useEffectiveConfig, type AiConfig } from "@/stores/use-config-store";
 import { canvasThemes } from "@/lib/canvas-theme";
 import { useThemeStore } from "@/stores/use-theme-store";
 import { CanvasImageSettingsPopover } from "./canvas-image-settings-popover";
-import { CanvasPromptLibrary } from "./canvas-prompt-library";
 import { CanvasAudioSettingsPopover } from "./canvas-audio-settings-popover";
 import { CanvasResourceMentionTextarea } from "./canvas-resource-mention-textarea";
 import { CanvasVideoSettingsPopover } from "./canvas-video-settings-popover";
@@ -49,17 +47,6 @@ export function CanvasNodePromptPanel({ node, isRunning, onPromptChange, onConfi
     const [prompt, setPrompt] = useState(isEditingExistingContent ? "" : node.metadata?.prompt || "");
     const [expanded, setExpanded] = useState(false);
     const expandedEditorRef = useRef<HTMLTextAreaElement | null>(null);
-    const credits = requestCreditCost({
-        apiSource: config.apiSource,
-        modelPointCosts: config.modelPointCosts,
-        generationPointMultipliers: config.generationPointMultipliers,
-        kind: mode,
-        model: config.model,
-        count: mode === "image" ? config.count : 1,
-        quality: config.quality,
-        videoQuality: config.vquality,
-        videoSeconds: config.videoSeconds,
-    });
 
     useEffect(() => {
         setPrompt(isEditingExistingContent ? "" : node.metadata?.prompt || "");
@@ -124,7 +111,6 @@ export function CanvasNodePromptPanel({ node, isRunning, onPromptChange, onConfi
 
             <div className="mt-2 flex min-w-0 flex-wrap items-center gap-2">
                 <div className="canvas-composer-tools flex min-w-0 flex-1 flex-wrap items-center gap-2">
-                    <CanvasPromptLibrary onSelect={updatePrompt} />
                     {mode === "image" ? (
                         <>
                             <ModelPicker
@@ -206,10 +192,6 @@ export function CanvasNodePromptPanel({ node, isRunning, onPromptChange, onConfi
                         ) : (
                             <>
                                 <span className="text-xs font-semibold">生成</span>
-                                <span className="inline-flex items-center gap-1 text-xs font-medium tabular-nums">
-                                    <CreditSymbol />
-                                    {formatCreditAmount(credits)}
-                                </span>
                             </>
                         )}
                     </span>

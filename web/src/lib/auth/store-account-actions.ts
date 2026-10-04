@@ -391,10 +391,8 @@ export async function deleteUserByAdmin(actorId: string, userId: string, options
 
 function assertCanUpdateManagedUser(actor: StoredUser | null | undefined, user: StoredUser, patch: AdminUserPatch) {
     const nextRole = patch.role || user.role;
-    const touchesAdministrator = user.role === "admin" || nextRole === "admin" || patch.adminPermissions !== undefined;
-    assertAdminPermission(actor, touchesAdministrator ? "administrators.manage" : "users.manage");
+    assertAdminPermission(actor, "users.manage");
     if (user.role === "admin" && !hasAllAdminPermissions(actor, user.adminPermissions)) throw new AuthInputError("不能管理职责范围高于当前账号的管理员", 403);
-    if (patch.pointsBalance !== undefined || patch.planId !== undefined) assertAdminPermission(actor, "billing.manage");
     if (nextRole === "admin") {
         const permissions = normalizeAdminPermissions(patch.adminPermissions ?? user.adminPermissions);
         if (!permissions.length) throw new AuthInputError("管理员至少需要一项职责权限");
@@ -403,7 +401,7 @@ function assertCanUpdateManagedUser(actor: StoredUser | null | undefined, user: 
 }
 
 function assertCanDeleteManagedUser(actor: StoredUser | null | undefined, user: StoredUser) {
-    assertAdminPermission(actor, user.role === "admin" ? "administrators.manage" : "users.manage");
+    assertAdminPermission(actor, "users.manage");
     if (user.role === "admin" && !hasAllAdminPermissions(actor, user.adminPermissions)) throw new AuthInputError("不能删除职责范围高于当前账号的管理员", 403);
 }
 

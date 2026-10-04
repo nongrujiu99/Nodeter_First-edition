@@ -4,7 +4,7 @@ import type { FormEvent, ReactNode } from "react";
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Gift, LockKeyhole, Mail, ShieldCheck, UserRound } from "lucide-react";
-import { App, Button, Checkbox, Input } from "antd";
+import { App, Button, Input } from "antd";
 
 import { SiteLogo } from "@/components/layout/site-logo";
 import { DEFAULT_SITE_TITLE, resolveSiteTitle } from "@/lib/site-brand";
@@ -57,7 +57,6 @@ export function AuthForm({
     const [totpCode, setTotpCode] = useState("");
     const [mfaRequired, setMfaRequired] = useState(false);
     const [referralCode, setReferralCode] = useState(initialReferralCode);
-    const [policyAccepted, setPolicyAccepted] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [sendingCode, setSendingCode] = useState(false);
     const isRegister = mode === "register";
@@ -81,7 +80,6 @@ export function AuthForm({
                     totpCode: !isRegister && mfaRequired ? totpCode : undefined,
                     referralCode: isRegister && !firstUser ? referralCode : undefined,
                     referralSource,
-                    policyAccepted: isRegister && !firstUser ? policyAccepted : undefined,
                     installToken: firstUser ? installToken.trim() : undefined,
                 }),
             });
@@ -269,21 +267,6 @@ export function AuthForm({
                     </label>
                 ) : null}
 
-                {isRegister && !firstUser ? (
-                    <Checkbox checked={policyAccepted} disabled={submitting || disabled} onChange={(event) => setPolicyAccepted(event.target.checked)}>
-                        <span className="text-sm leading-6 text-stone-600 dark:text-stone-300">
-                            我已阅读并同意
-                            <a className="mx-1 font-medium text-stone-950 hover:underline dark:text-white" href={site.termsUrl || "/terms"} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}>
-                                服务条款
-                            </a>
-                            和
-                            <a className="ml-1 font-medium text-stone-950 hover:underline dark:text-white" href={site.privacyUrl || "/privacy"} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}>
-                                隐私政策
-                            </a>
-                        </span>
-                    </Checkbox>
-                ) : null}
-
                 <Button
                     className="auth-submit-button"
                     type="primary"
@@ -291,7 +274,7 @@ export function AuthForm({
                     size="large"
                     block
                     loading={submitting}
-                    disabled={disabled || !installTokenReady || (isRegister && !firstUser && !policyAccepted)}
+                    disabled={disabled || !installTokenReady}
                     icon={<ArrowRight className="size-4" />}
                     iconPlacement="end"
                 >
@@ -331,8 +314,8 @@ export function AuthForm({
                 <section className="auth-page-brand-panel flex min-h-[220px] flex-col justify-between gap-5 border-b p-5 text-stone-950 sm:min-h-[360px] sm:gap-8 sm:p-8 md:border-b-0 md:border-r dark:text-white">
                     <div className="flex items-start justify-between gap-4">
                         <Link href="/" className="inline-flex items-center gap-4 text-base font-semibold">
-                            <SiteLogo logoUrl={site.logoUrl} className="size-16 sm:size-20" />
-                            <span className="text-3xl">{site.title}</span>
+                            <SiteLogo logoUrl={site.logoUrl} className="h-16 w-auto sm:h-20" />
+                            <span className="sr-only text-3xl">{site.title}</span>
                         </Link>
                         <Link
                             href="/"

@@ -36,14 +36,6 @@ DROP TRIGGER IF EXISTS payment_transactions_set_updated_at ON payment_transactio
 CREATE TRIGGER payment_transactions_set_updated_at BEFORE UPDATE ON payment_transactions FOR EACH ROW EXECUTE FUNCTION vozeb_pro_set_updated_at();
 DROP TRIGGER IF EXISTS billing_refund_jobs_set_updated_at ON billing_refund_jobs;
 CREATE TRIGGER billing_refund_jobs_set_updated_at BEFORE UPDATE ON billing_refund_jobs FOR EACH ROW EXECUTE FUNCTION vozeb_pro_set_updated_at();
-DROP TRIGGER IF EXISTS referral_programs_set_updated_at ON referral_programs;
-CREATE TRIGGER referral_programs_set_updated_at BEFORE UPDATE ON referral_programs FOR EACH ROW EXECUTE FUNCTION vozeb_pro_set_updated_at();
-DROP TRIGGER IF EXISTS referral_codes_set_updated_at ON referral_codes;
-CREATE TRIGGER referral_codes_set_updated_at BEFORE UPDATE ON referral_codes FOR EACH ROW EXECUTE FUNCTION vozeb_pro_set_updated_at();
-DROP TRIGGER IF EXISTS referral_relationships_set_updated_at ON referral_relationships;
-CREATE TRIGGER referral_relationships_set_updated_at BEFORE UPDATE ON referral_relationships FOR EACH ROW EXECUTE FUNCTION vozeb_pro_set_updated_at();
-DROP TRIGGER IF EXISTS referral_rewards_set_updated_at ON referral_rewards;
-CREATE TRIGGER referral_rewards_set_updated_at BEFORE UPDATE ON referral_rewards FOR EACH ROW EXECUTE FUNCTION vozeb_pro_set_updated_at();
 DROP TRIGGER IF EXISTS published_works_set_updated_at ON published_works;
 CREATE TRIGGER published_works_set_updated_at BEFORE UPDATE ON published_works FOR EACH ROW EXECUTE FUNCTION vozeb_pro_set_updated_at();
 DROP TRIGGER IF EXISTS published_work_versions_set_updated_at ON published_work_versions;
@@ -64,9 +56,6 @@ CREATE TRIGGER payment_provider_events_set_updated_at BEFORE UPDATE ON payment_p
 
 DROP TRIGGER IF EXISTS cdk_codes_set_updated_at ON cdk_codes;
 CREATE TRIGGER cdk_codes_set_updated_at BEFORE UPDATE ON cdk_codes FOR EACH ROW EXECUTE FUNCTION vozeb_pro_set_updated_at();
-
-DROP TRIGGER IF EXISTS announcements_set_updated_at ON announcements;
-CREATE TRIGGER announcements_set_updated_at BEFORE UPDATE ON announcements FOR EACH ROW EXECUTE FUNCTION vozeb_pro_set_updated_at();
 
 DROP TRIGGER IF EXISTS prompts_set_updated_at ON prompts;
 CREATE TRIGGER prompts_set_updated_at BEFORE UPDATE ON prompts FOR EACH ROW EXECUTE FUNCTION vozeb_pro_set_updated_at();

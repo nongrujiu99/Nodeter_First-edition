@@ -48,7 +48,7 @@ export function InstallWizard({ install, initialSite }: { install: InstallStatus
         <div className="mx-auto w-full max-w-6xl">
             <header className="flex flex-col gap-4 px-1 py-2 sm:flex-row sm:items-center sm:justify-between">
                 <Link href="/" className="inline-flex min-w-0 items-center gap-3">
-                    <SiteLogo logoUrl={site.logoUrl} className="size-11" />
+                    <SiteLogo logoUrl={site.logoUrl} className="h-11 w-auto" />
                     <span className="min-w-0">
                         <span className="block text-2xl font-semibold tracking-normal text-slate-950">{site.title} 安装向导</span>
                         <span className="mt-1 block text-sm text-slate-500">三步完成服务器初始化</span>

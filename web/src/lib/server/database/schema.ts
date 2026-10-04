@@ -245,27 +245,6 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE INDEX IF NOT EXISTS sessions_user_id_idx ON sessions (user_id);
 CREATE INDEX IF NOT EXISTS sessions_expires_at_idx ON sessions (expires_at);
 
-CREATE TABLE IF NOT EXISTS account_deletion_requests (
-    id text PRIMARY KEY,
-    user_id text NOT NULL,
-    username_snapshot text NOT NULL,
-    display_name_snapshot text NOT NULL,
-    email_snapshot text,
-    status text NOT NULL DEFAULT 'pending',
-    request_note text NOT NULL DEFAULT '',
-    review_note text NOT NULL DEFAULT '',
-    reviewed_by_user_id text,
-    reviewed_by_username text,
-    requested_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now(),
-    handled_at timestamptz,
-    CONSTRAINT account_deletion_requests_status CHECK (status IN ('pending', 'accepted', 'rejected', 'withdrawn'))
-);
-
-CREATE UNIQUE INDEX IF NOT EXISTS account_deletion_requests_user_pending_idx ON account_deletion_requests (user_id) WHERE status = 'pending';
-CREATE INDEX IF NOT EXISTS account_deletion_requests_user_created_idx ON account_deletion_requests (user_id, requested_at DESC);
-CREATE INDEX IF NOT EXISTS account_deletion_requests_status_created_idx ON account_deletion_requests (status, requested_at DESC);
-
 CREATE TABLE IF NOT EXISTS rate_limits (
     key_hash text PRIMARY KEY,
     request_count integer NOT NULL DEFAULT 0,
@@ -868,21 +847,6 @@ CREATE TABLE IF NOT EXISTS cdk_redemptions (
 
 CREATE INDEX IF NOT EXISTS cdk_redemptions_user_id_idx ON cdk_redemptions (user_id);
 
-CREATE TABLE IF NOT EXISTS announcements (
-    id text PRIMARY KEY,
-    title text NOT NULL,
-    content text NOT NULL,
-    enabled boolean NOT NULL DEFAULT true,
-    popup_home boolean NOT NULL DEFAULT false,
-    popup_after_login boolean NOT NULL DEFAULT false,
-    starts_at timestamptz,
-    ends_at timestamptz,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS announcements_visible_idx ON announcements (enabled, starts_at, ends_at);
-
 CREATE TABLE IF NOT EXISTS prompts (
     id text PRIMARY KEY,
     scope text NOT NULL,
@@ -993,6 +957,6 @@ CREATE INDEX IF NOT EXISTS audit_logs_target_idx ON audit_logs (target_type, tar
 ${POSTGRESQL_TRIGGER_SCHEMA_SQL}
 
 INSERT INTO schema_migrations (version)
-VALUES ('20260709_postgresql_commercial_base'), ('20260709_billing_foundation'), ('20260709_billing_checkout'), ('20260709_commercial_seed_products'), ('20260709_vozeb_pro_table_prefix'), ('20260711_generation_tasks'), ('20260716_billing_reconciliation'), ('20260725_account_deletion_requests'), ('20260726_promotion_coupon_commerce'), ('20260727_referral_growth_rewards'), ('20260727_work_publications'), ('20260727_work_community'), ('20260728_user_blocks')
+VALUES ('20260709_postgresql_commercial_base'), ('20260709_billing_foundation'), ('20260709_billing_checkout'), ('20260709_commercial_seed_products'), ('20260709_vozeb_pro_table_prefix'), ('20260711_generation_tasks'), ('20260716_billing_reconciliation'), ('20260726_promotion_coupon_commerce'), ('20260727_work_publications'), ('20260727_work_community'), ('20260728_user_blocks')
 ON CONFLICT (version) DO NOTHING;
 `;

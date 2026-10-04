@@ -31,13 +31,7 @@ import {
     type CreatedCdkCode,
     type StoredCdkRedemption,
     type StoredCdkCode,
-    type PublicAnnouncement,
     type SiteSettings,
-    type SiteFriendLink,
-    type SiteSocialKey,
-    type SiteSocialSettings,
-    DEFAULT_SITE_SOCIALS,
-    DEFAULT_SITE_FRIEND_LINKS,
     type MailSettings,
     type PublicUser,
     type StoredUser,
@@ -82,19 +76,10 @@ export const EMAIL_CODE_RESEND_COOLDOWN_MS = 1000 * 60;
 export const DEFAULT_USER_POINTS = 0;
 export const DEFAULT_MODEL_POINT_COST_KEY = "__default__";
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
-    title: "VOZEB PRO",
+    title: "Nodeter",
     logoUrl: "/logo.svg",
     iconUrl: "/icon.svg",
-    seoTitle: "VOZEB PRO",
-    seoDescription: "面向 Agent、图片、视频、画布与短剧生产的一体化 AI 创作工作台",
-    seoKeywords: "VOZEB PRO,AI Agent,AI 绘图,AI 视频,画布,短剧,提示词库,素材管理",
-    footerCopyright: "© 2026 VOZEB PRO. All rights reserved.",
-    termsUrl: "/terms",
-    termsVersion: "1.0",
-    privacyUrl: "/privacy",
-    privacyVersion: "1.0",
-    friendLinks: DEFAULT_SITE_FRIEND_LINKS,
-    socials: DEFAULT_SITE_SOCIALS,
+    footerCopyright: "© 2026 Nodeter. All rights reserved.",
 };
 export const DEFAULT_MAIL_SETTINGS: MailSettings = {
     provider: "QQ 邮箱",
@@ -104,7 +89,7 @@ export const DEFAULT_MAIL_SETTINGS: MailSettings = {
     username: "",
     password: "",
     fromEmail: "",
-    fromName: "VOZEB PRO",
+    fromName: "Nodeter",
 };
 export const DEFAULT_GENERATION_POINT_MULTIPLIERS: GenerationPointMultipliers = {
     imageQuality: { auto: 1, low: 1, medium: 1, high: 1 },

@@ -1,6 +1,6 @@
 ---
 title: Render 部署
-description: 使用 Render Blueprint 和 PostgreSQL 部署 VOZEB PRO
+description: 使用 Render Blueprint 和 PostgreSQL 部署 Nodeter
 ---
 
 # Render 部署
@@ -25,4 +25,4 @@ description: 使用 Render Blueprint 和 PostgreSQL 部署 VOZEB PRO
 - Render 存活检查使用 `/api/health/live`，确保首次安装前也能部署；数据库、加密密钥、管理员和 Worker 心跳由 `/api/health/ready` 供外部监控检查。
 - Canvas、素材库、短剧和工作台记录保存在 PostgreSQL，媒体文件还需要随持久化磁盘一起备份。
 - 持久盘只挂载到 Web，Worker 经私网维护 API 领取任务，由 Web 完成数据库和媒体写入；Worker 不应获得 `DATABASE_URL`。
-- Blueprint 结构化契约通过不等于 Render 已真实创建资源；上线前仍需核对实际费用、首次部署、重启恢复、支付回调、长任务与媒体生成。
+- Blueprint 结构化契约通过不等于 Render 已真实创建资源；上线前仍需核对实际费用、首次部署、重启恢复、长任务与媒体生成。

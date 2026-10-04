@@ -33,7 +33,6 @@ describe("POST /api/admin/backup", () => {
             auth: { users: [{ id: "admin-one" }], settings: {} },
             prompts: { version: 1, prompts: [], seedSources: [] },
             generationLogs: { version: 1, logs: [] },
-            accountDeletionRequests: { version: 1, requests: [] },
         });
     });
 

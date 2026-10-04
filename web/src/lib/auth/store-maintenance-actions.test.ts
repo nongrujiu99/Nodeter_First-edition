@@ -45,7 +45,6 @@ describe("expired authentication record cleanup", () => {
                 { id: "active", purpose: "register", email: "three@example.com", codeHash: "three", createdAt: "2026-08-09T00:00:00.000Z", expiresAt: "2026-08-10T00:00:00.000Z" },
             ],
             cdkCodes: [],
-            announcements: [],
             settings: DEFAULT_SETTINGS,
         };
     });

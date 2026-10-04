@@ -18,19 +18,6 @@ export type AdminDashboardProps = {
     setupSummary?: AdminSetupSummary;
     headerActions?: ReactNode;
 };
-export type PromptFormValue = {
-    title: string;
-    prompt: string;
-    category?: string;
-    tags?: string;
-    coverUrl?: string;
-    preview?: string;
-};
-
-export const PROMPT_PAGE_SIZE = 20;
-export const PROMPT_SEARCH_DEBOUNCE_MS = 300;
-export const CDK_PAGE_SIZE = 20;
-export const GENERATION_LOG_PAGE_SIZE = 20;
 
 import type { AdminDashboardDataActions } from "./use-admin-dashboard-data-actions";
 import type { AdminDashboardSettingsActions } from "./use-admin-dashboard-settings-actions";
@@ -41,33 +28,11 @@ export function useAdminDashboardEffects({ state, data, settingsActions }: { sta
         initialSection,
         settings,
         settingsLoading,
-        promptSearch,
-        debouncedPromptSearch,
-        setDebouncedPromptSearch,
-        promptPage,
-        generationLogPage,
-        generationLogSearch,
-        generationLogKind,
-        generationLogSource,
-        generationLogStatus,
-        generationLogUserId,
-        generationLogStart,
-        generationLogEnd,
-        cdkSearch,
-        debouncedCdkSearch,
-        setDebouncedCdkSearch,
-        cdkFilter,
-        cdkPage,
-        userSearch,
-        debouncedUserSearch,
-        setDebouncedUserSearch,
-        userPage,
-        setUserPage,
         activeSection,
         setActiveSection,
         setAgentReadiness,
     } = state;
-    const { loadBillingSummary, loadOperationsSummary, loadGenerationAssetStats, loadPrompts, loadGenerationLogs, loadPaymentConfig, loadCdkCodes, loadAnnouncements, loadUsers } = data;
+    const {} = data;
     const {} = settingsActions;
 
     useEffect(() => {
@@ -78,65 +43,6 @@ export function useAdminDashboardEffects({ state, data, settingsActions }: { sta
     }, [activeSection, settingsLoading]);
 
     useEffect(() => {
-        const timer = window.setTimeout(() => setDebouncedPromptSearch(promptSearch.trim()), PROMPT_SEARCH_DEBOUNCE_MS);
-        return () => window.clearTimeout(timer);
-    }, [promptSearch]);
-
-    useEffect(() => {
-        const timer = window.setTimeout(() => {
-            setUserPage(1);
-            setDebouncedUserSearch(userSearch.trim());
-        }, PROMPT_SEARCH_DEBOUNCE_MS);
-        return () => window.clearTimeout(timer);
-    }, [userSearch]);
-
-    useEffect(() => {
-        const timer = window.setTimeout(() => setDebouncedCdkSearch(cdkSearch.trim()), PROMPT_SEARCH_DEBOUNCE_MS);
-        return () => window.clearTimeout(timer);
-    }, [cdkSearch]);
-
-    useEffect(() => {
         setActiveSection(initialSection);
     }, [initialSection]);
-
-    useEffect(() => {
-        if (activeSection !== "prompts") return;
-        void loadPrompts(promptPage, debouncedPromptSearch);
-    }, [activeSection, promptPage, debouncedPromptSearch]);
-
-    useEffect(() => {
-        if (activeSection !== "users") return;
-        void loadUsers(userPage, debouncedUserSearch);
-    }, [activeSection, userPage, debouncedUserSearch]);
-
-    useEffect(() => {
-        if (activeSection !== "overview") return;
-        void loadGenerationAssetStats();
-        void loadOperationsSummary();
-    }, [activeSection]);
-
-    useEffect(() => {
-        if (activeSection !== "logs") return;
-        void loadGenerationLogs();
-    }, [activeSection, generationLogPage, generationLogSearch, generationLogKind, generationLogSource, generationLogStatus, generationLogUserId, generationLogStart, generationLogEnd]);
-
-    useEffect(() => {
-        if (activeSection !== "cdk") return;
-        void loadCdkCodes();
-    }, [activeSection, cdkPage, debouncedCdkSearch, cdkFilter]);
-
-    useEffect(() => {
-        if (activeSection !== "announcements") return;
-        void loadAnnouncements();
-    }, [activeSection]);
-
-    useEffect(() => {
-        if (activeSection !== "payments") return;
-        void loadPaymentConfig();
-    }, [activeSection]);
-
-    useEffect(() => {
-        if (activeSection !== "wallet" && activeSection !== "overview") return;
-        void loadBillingSummary();
-    }, [activeSection]);
 }

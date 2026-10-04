@@ -13,7 +13,6 @@ describe("admin account-config backup merge", () => {
             users: [user("user-a", "admin", 10), user("user-b", "member", 20)],
             prompts: [{ id: "prompt-b", title: "保留提示词" }],
             logs: [{ id: "log-b", userId: "user-b", title: "保留记录" }],
-            deletionRequests: [{ id: "delete-b", userId: "user-b", status: "pending", note: "保留申请" }],
         });
         current.auth.sessions.push({ id: "session-b", userId: "user-b", tokenHash: "token-b", createdAt: now, expiresAt: now });
         current.auth.pointRecords.push({
@@ -33,7 +32,6 @@ describe("admin account-config backup merge", () => {
             users: [user("user-a", "admin", 99)],
             prompts: [{ id: "prompt-a", title: "导入提示词" }],
             logs: [{ id: "log-a", userId: "user-a", title: "导入记录" }],
-            deletionRequests: [{ id: "delete-a", userId: "user-a", status: "accepted", note: "导入申请" }],
         });
 
         const merged = mergeAccountConfigBackup(current, imported);
@@ -43,7 +41,6 @@ describe("admin account-config backup merge", () => {
         expect(merged.auth.pointRecords).toEqual(current.auth.pointRecords);
         expect(merged.prompts.prompts.map((prompt) => prompt.id)).toEqual(["prompt-b", "prompt-a"]);
         expect(merged.generationLogs.logs.map((log) => log.id)).toEqual(["log-b", "log-a"]);
-        expect(merged.accountDeletionRequests.requests.map((request) => request.id)).toEqual(["delete-b", "delete-a"]);
     });
 });
 
@@ -51,7 +48,6 @@ function backup(input: {
     users: StoredUser[];
     prompts: Array<{ id: string; title: string }>;
     logs: Array<{ id: string; userId: string; title: string }>;
-    deletionRequests: Array<{ id: string; userId: string; status: "pending" | "accepted"; note: string }>;
 }): AdminBackupData {
     const auth = emptyDb();
     auth.users = input.users;
@@ -83,17 +79,6 @@ function backup(input: {
                 createdAt: now,
                 updatedAt: now,
                 completedAt: now,
-            })),
-        },
-        accountDeletionRequests: {
-            version: 1,
-            requests: input.deletionRequests.map((request) => ({
-                ...request,
-                username: request.userId,
-                displayName: request.userId,
-                reviewNote: "",
-                requestedAt: now,
-                updatedAt: now,
             })),
         },
     };

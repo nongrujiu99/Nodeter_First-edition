@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 export async function GET(request: Request) {
     const currentUser = await getCurrentUser();
     if (!currentUser) return NextResponse.json({ error: "请先登录" }, { status: 401 });
-    if (!hasAdminPermission(currentUser, "users.read")) return NextResponse.json({ error: "当前管理员没有查看用户的职责权限" }, { status: 403 });
+    if (!hasAdminPermission(currentUser, "users.manage")) return NextResponse.json({ error: "当前管理员没有查看用户的职责权限" }, { status: 403 });
 
     const params = new URL(request.url).searchParams;
     const role = params.get("role");
@@ -29,7 +29,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
     const currentUser = await getCurrentUser();
     if (!currentUser) return NextResponse.json({ error: "请先登录" }, { status: 401 });
-    if (!hasAnyAdminPermission(currentUser, ["users.manage", "administrators.manage"])) return NextResponse.json({ error: "当前管理员没有创建用户的职责权限" }, { status: 403 });
+    if (!hasAnyAdminPermission(currentUser, ["users.manage"])) return NextResponse.json({ error: "当前管理员没有创建用户的职责权限" }, { status: 403 });
 
     let body: { username?: unknown; displayName?: unknown; email?: unknown; password?: unknown; role?: unknown; adminPermissions?: unknown; status?: unknown; pointsBalance?: unknown; planId?: unknown } = {};
     try {

@@ -19,14 +19,10 @@ describe("installation page routing", () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mocks.getPublicSiteSettings.mockResolvedValue({
-            title: "VOZEB PRO",
+            title: "Nodeter",
             logoUrl: "/logo.svg",
-            seoDescription: "",
+            iconUrl: "/icon.svg",
             footerCopyright: "",
-            privacyUrl: "",
-            termsUrl: "",
-            friendLinks: [],
-            socials: {},
         });
         mocks.redirect.mockImplementation((path: string) => {
             throw new Error(`redirect:` + path);

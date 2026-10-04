@@ -16,7 +16,7 @@ type RouteContext = {
 export async function PATCH(request: Request, context: RouteContext) {
     const currentUser = await getCurrentUser();
     if (!currentUser) return NextResponse.json({ error: "请先登录" }, { status: 401 });
-    if (!hasAnyAdminPermission(currentUser, ["users.manage", "administrators.manage", "billing.manage"])) return NextResponse.json({ error: "当前管理员没有编辑用户的职责权限" }, { status: 403 });
+    if (!hasAnyAdminPermission(currentUser, ["users.manage"])) return NextResponse.json({ error: "当前管理员没有编辑用户的职责权限" }, { status: 403 });
 
     try {
         const { id } = await context.params;
@@ -57,7 +57,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 export async function DELETE(request: Request, context: RouteContext) {
     const currentUser = await getCurrentUser();
     if (!currentUser) return NextResponse.json({ error: "请先登录" }, { status: 401 });
-    if (!hasAnyAdminPermission(currentUser, ["users.manage", "administrators.manage"])) return NextResponse.json({ error: "当前管理员没有删除用户的职责权限" }, { status: 403 });
+    if (!hasAnyAdminPermission(currentUser, ["users.manage"])) return NextResponse.json({ error: "当前管理员没有删除用户的职责权限" }, { status: 403 });
 
     try {
         const { id } = await context.params;

@@ -1,35 +1,11 @@
 "use client";
 
 import { useUserStore, type LocalUser } from "@/stores/use-user-store";
-import type { PublicPointRecord } from "@/lib/auth/store-types";
-import { serializeApiParams } from "./request";
 import { expireClientSession } from "./session-expiration";
-
-export type PointRecord = Pick<PublicPointRecord, "id" | "type" | "amount" | "balanceAfter" | "description" | "createdAt">;
-
-export type PointRecordListResult = {
-    records: PointRecord[];
-    total: number;
-    page: number;
-    pageSize: number;
-};
 
 type HeaderLike = Headers | Record<string, unknown> | { get: (key: string) => unknown } | undefined;
 let pointsRefreshPromise: Promise<void> | null = null;
 let pointsRefreshQueued = false;
-
-export async function listPointRecords(input: { page?: number; pageSize?: number; direction?: "credit" | "debit" } = {}): Promise<PointRecordListResult> {
-    const params = serializeApiParams(input);
-    const response = await fetch(`/api/points${params.size ? `?${params.toString()}` : ""}`, { cache: "no-store" });
-    const payload = (await response.json().catch(() => null)) as (Partial<PointRecordListResult> & { error?: string }) | null;
-    if (!response.ok || !payload) throw new Error(payload?.error || "积分记录加载失败");
-    return {
-        records: payload.records || [],
-        total: Number(payload.total || 0),
-        page: Number(payload.page || input.page || 1),
-        pageSize: Number(payload.pageSize || input.pageSize || 10),
-    };
-}
 
 export function syncUserPointsFromHeaders(headers: HeaderLike, apiSource?: "system" | "custom") {
     if (apiSource !== "system") return;

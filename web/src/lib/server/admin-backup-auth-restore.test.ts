@@ -14,7 +14,6 @@ const mocks = vi.hoisted(() => ({
     insertPostgresPointRecords: vi.fn(),
     insertPostgresDailyPlanPointWallets: vi.fn(),
     insertPostgresCdkCodes: vi.fn(),
-    insertPostgresAnnouncements: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/store-repository", () => mocks);

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { AuthInputError, getFreshAuthSettings, isAuthInputError, setAuthSettings, type AuthSettings, type SiteSocialKey, type SiteSocialSettings } from "@/lib/auth/store";
-import { normalizeSiteSocial } from "@/lib/auth/store-normalizers";
+import { AuthInputError, getFreshAuthSettings, isAuthInputError, setAuthSettings, type AuthSettings } from "@/lib/auth/store";
 import { modelRoutingValidationErrors, normalizeDefaultModelsConfig, synchronizeLogicalModelsWithChannels } from "@/lib/model-routing-config";
 import { readJsonBody } from "@/lib/auth/request";
 import { getCurrentUser } from "@/lib/auth/session";
@@ -30,8 +29,6 @@ export async function PATCH(request: Request) {
         const body = await readJsonBody<Partial<AuthSettings>>(request);
         const requiredPermissions = settingsPermissionsForPatch(body);
         if (!hasAllAdminPermissions(currentUser, requiredPermissions)) return NextResponse.json({ error: "当前管理员没有修改这些设置的职责权限" }, { status: 403 });
-        const socialValidationError = siteSocialValidationError(body.site?.socials);
-        if (socialValidationError) throw new AuthInputError(socialValidationError);
         const currentSettings = await getFreshAuthSettings();
         const patch: Partial<AuthSettings> = {};
         if (body.site) patch.site = body.site;
@@ -97,11 +94,6 @@ const SETTINGS_PERMISSION_BY_FIELD = {
     emailRegistrationEnabled: "system.manage",
     mail: "system.manage",
     dataLifecycle: "system.manage",
-    freeDailyPointsEnabled: "billing.manage",
-    freeDailyPoints: "billing.manage",
-    modelPointCosts: "billing.manage",
-    generationPointMultipliers: "billing.manage",
-    entitlements: "billing.manage",
     generationCostControl: "upstream.manage",
     generationConcurrency: "upstream.manage",
     generationDefaults: "upstream.manage",
@@ -118,15 +110,4 @@ function settingsPermissionsForPatch(patch: Partial<AuthSettings>) {
         if (permission && !permissions.includes(permission)) permissions.push(permission);
     }
     return permissions;
-}
-
-function siteSocialValidationError(socials: Partial<SiteSocialSettings> | undefined) {
-    if (!socials) return "";
-    const labels: Record<SiteSocialKey, string> = { email: "邮箱", telegram: "Telegram", x: "X", instagram: "Instagram" };
-    for (const key of Object.keys(labels) as SiteSocialKey[]) {
-        const social = socials[key];
-        if (typeof social?.url !== "string" || !social.url.trim()) continue;
-        if (!normalizeSiteSocial(key, social).url) return `${labels[key]} 地址无效，请填写完整链接或 @用户名`;
-    }
-    return "";
 }

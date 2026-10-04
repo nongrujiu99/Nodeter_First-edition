@@ -650,7 +650,7 @@ function DramaAgentContent({
             <div className="flex h-12 shrink-0 items-center border-b border-border px-3.5">
                 <div className="flex w-full min-w-0 items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-2 font-medium">
-                        <SiteLogo logoUrl={site.logoUrl} className="size-5" />
+                        <SiteLogo logoUrl={site.logoUrl} className="h-5 w-auto" />
                         <span className="truncate">{stageGuide.label}</span>
                     </div>
                     <div className="flex shrink-0 items-center gap-0.5">

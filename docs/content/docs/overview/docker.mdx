@@ -1,11 +1,11 @@
 ---
 title: Docker 部署
-description: 使用 Docker Compose、PostgreSQL 和发布镜像部署 VOZEB PRO
+description: 使用 Docker Compose、PostgreSQL 和发布镜像部署 Nodeter
 ---
 
 # Docker 部署
 
-主 Compose 会启动 VOZEB PRO 和 PostgreSQL 16。正式部署前先复制并修改 `.env`。
+主 Compose 会启动 Nodeter 和 PostgreSQL 16。正式部署前先复制并修改 `.env`。
 
 ## 安装
 
@@ -37,7 +37,7 @@ docker compose ps
 
 ```text
 postgres -> PostgreSQL 16，数据卷 vozeb-pro-postgres
-app      -> VOZEB PRO standalone，数据卷 vozeb-pro-data
+app      -> Nodeter standalone，数据卷 vozeb-pro-data
 ```
 
 应用通过容器网络连接：
@@ -87,17 +87,6 @@ docker compose exec postgres pg_isready -U vozeb_pro -d vozeb_pro
 ```
 
 安装页报数据库错误时，重点检查 `.env`、PostgreSQL 健康状态、数据库密码和 Host。浏览器只显示安全分类提示，完整连接错误保留在服务器日志。
-
-## GHCR 权限
-
-公开镜像可直接拉取。私有镜像需要登录：
-
-```bash
-echo "GitHub Token" | docker login ghcr.io -u GitHub用户名 --password-stdin
-docker compose pull
-```
-
-Token 不得写入仓库或公开日志。
 
 ## HTTPS 反向代理
 

@@ -15,9 +15,7 @@ import type { VideoReferenceRole } from "@/lib/video-reference-contract";
 import { useCreativeAgentModels } from "@/hooks/use-creative-agent-options";
 import { listAgentSkills, type AgentSkillSummary } from "@/services/api/agent-skills";
 import type { CreativeAgentRun } from "@/services/api/creative";
-import { optimizePrompt } from "@/services/api/prompt-optimization";
 import { usePublicSessionStore } from "@/stores/use-public-session-store";
-import type { PublicGalleryItem } from "@/services/api/work-governance";
 import { createAgentDraftFromHash } from "@/lib/create-agent-prompt";
 import { resolveSiteTitle } from "@/lib/site-brand";
 
@@ -25,7 +23,6 @@ import { CreativeComposer } from "./components/creative-composer";
 import { CreativeAssetsPanel } from "./components/creative-assets-panel";
 import { applyAgentGenerationCapability, shouldShowVideoFrameControls } from "./components/creative-composer-video-mode";
 import { CreativeConversationList } from "./components/creative-conversation-list";
-import { CreateInspirationGallery } from "./components/create-inspiration-gallery";
 import { CreativeMessages } from "./components/creative-messages";
 import { CreateWorkbenchOverview } from "./components/create-workbench-overview";
 import { publicCreativeAssetPrompt, remapCreativeAssetReferences } from "./components/creative-asset-mention";
@@ -59,10 +56,7 @@ export default function CreatePage() {
     const scrollingAwayFromLatestRef = useRef(false);
     const touchScrollYRef = useRef<number | undefined>(undefined);
     const promptValueRef = useRef("");
-    const promptRevisionRef = useRef(0);
-    const optimizingRef = useRef(false);
     const [prompt, setPrompt] = useState("");
-    const [optimizingPrompt, setOptimizingPrompt] = useState(false);
     const [skills, setSkills] = useState<AgentSkillSummary[]>([]);
     const [skillsLoading, setSkillsLoading] = useState(true);
     const [selectedSkillId, setSelectedSkillId] = useState<string>();
@@ -86,7 +80,6 @@ export default function CreatePage() {
     const selectedModels = modelOptions.filter((model) => selectedModelIds.includes(model.id));
     const updatePrompt = useCallback((value: string) => {
         promptValueRef.current = value;
-        promptRevisionRef.current += 1;
         setPrompt(value);
     }, []);
 
@@ -206,7 +199,6 @@ export default function CreatePage() {
             message.warning("请先同时选择视频首帧和尾帧图片");
             return;
         }
-        promptRevisionRef.current += 1;
         try {
             const preferences = { ...generationPreferences, ...(creationMode !== "agent" ? { mode: creationMode } : {}) };
             if (
@@ -266,35 +258,6 @@ export default function CreatePage() {
         }
     };
 
-    const usePublicPrompt = (value: string) => {
-        updatePrompt(value);
-        window.requestAnimationFrame(() => inputRef.current?.focus());
-        message.success("已填入公开提示词");
-    };
-
-    const optimizeCurrentPrompt = async () => {
-        const source = promptValueRef.current.trim();
-        if (!source || optimizingRef.current) return;
-        const revision = promptRevisionRef.current;
-        optimizingRef.current = true;
-        setOptimizingPrompt(true);
-        try {
-            const optimized = await optimizePrompt({ requestId: `prompt-${crypto.randomUUID()}`, prompt: source, mode: creationMode });
-            if (promptRevisionRef.current !== revision) {
-                message.info("输入内容已变化，未覆盖当前提示词");
-                return;
-            }
-            updatePrompt(optimized);
-            window.requestAnimationFrame(() => inputRef.current?.focus());
-            message.success("提示词已优化");
-        } catch (error) {
-            message.error(error instanceof Error ? error.message : "提示词优化失败");
-        } finally {
-            optimizingRef.current = false;
-            setOptimizingPrompt(false);
-        }
-    };
-
     const importReferenceMedia = async (input: { url: string; mimeType?: string; fileStem: string }) => {
         try {
             const response = await fetch(input.url);
@@ -308,12 +271,6 @@ export default function CreatePage() {
         } catch (error) {
             message.error(error instanceof Error ? error.message : "引用素材失败");
         }
-    };
-
-    const usePublicImage = async (item: PublicGalleryItem) => {
-        const preview = item.preview;
-        if (!preview || preview.mediaType !== "image") return;
-        await importReferenceMedia({ url: preview.url, mimeType: preview.mimeType, fileStem: item.slug });
     };
 
     const useRecentAsset = async (asset: CreateOverviewAsset) => {
@@ -502,10 +459,8 @@ export default function CreatePage() {
             inputRef={inputRef}
             value={prompt}
             busy={agent.sending}
-            optimizing={optimizingPrompt}
             centered={!showConversation}
             onChange={updatePrompt}
-            onOptimize={() => void optimizeCurrentPrompt()}
             onSubmit={() => void submit()}
             onCancel={() => void agent.cancel().catch((error) => message.error(error instanceof Error ? error.message : "停止任务失败"))}
             attachments={agent.selectedAssets}
@@ -729,7 +684,6 @@ export default function CreatePage() {
                                     })}
                                 </div>
                                 <CreateWorkbenchOverview onUseAsset={useRecentAsset} />
-                                <CreateInspirationGallery onUsePrompt={usePublicPrompt} onUseImage={usePublicImage} />
                             </div>
                         )}
                     </section>

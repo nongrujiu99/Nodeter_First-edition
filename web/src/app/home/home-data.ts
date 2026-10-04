@@ -1,30 +1,20 @@
-import type { SiteFriendLink, SiteSocialSettings } from "@/lib/auth/store-types";
 import type { CreateAgentMode } from "@/lib/create-agent-prompt";
-import { WORK_CATEGORIES } from "@/lib/work-publication-options";
-import type { PublicGalleryItem } from "@/services/api/work-governance";
 
 export type HomeSiteSettings = {
     title: string;
     logoUrl: string;
-    seoDescription: string;
     footerCopyright: string;
-    termsUrl: string;
-    privacyUrl: string;
-    friendLinks: SiteFriendLink[];
-    socials: SiteSocialSettings;
 };
 
 export type HomeNavigationItem = {
     label: string;
     href: string;
-    action: "link" | "protected" | "billing";
+    action: "link" | "protected";
 };
 
 export const HOME_NAVIGATION = [
     { label: "创作 Agent", href: "/create", action: "protected" },
     { label: "短剧制作", href: "/drama", action: "protected" },
-    { label: "作品广场", href: "/gallery", action: "link" },
-    { label: "价格方案", href: "/billing", action: "billing" },
 ] as const satisfies readonly HomeNavigationItem[];
 
 export const HOME_CREATION_MODES = [
@@ -69,17 +59,3 @@ export const HOME_ADVANTAGES = [
     { title: "长任务不中断", description: "稳定续取创作进度", icon: "history" },
     { title: "企业级存储", description: "可靠保存创作资产", icon: "cloud" },
 ] as const;
-
-export const HOME_GALLERY_TABS = [{ id: "all", label: "全部" }, ...WORK_CATEGORIES.map((category) => ({ id: category, label: category }))] as const;
-
-export type HomeGalleryTab = "all" | (typeof WORK_CATEGORIES)[number];
-
-export function homeGalleryMatches(item: PublicGalleryItem, tab: HomeGalleryTab) {
-    const mediaType = item.preview?.mediaType;
-    if (mediaType !== "image" && mediaType !== "video") return false;
-    return tab === "all" || item.category === tab;
-}
-
-export function homeGalleryTypeLabel(item: PublicGalleryItem) {
-    return item.category;
-}

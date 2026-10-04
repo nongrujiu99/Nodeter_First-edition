@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { QueryExecutor } from "@/lib/server/database";
 import { POSTGRESQL_SCHEMA_SQL } from "@/lib/server/database/schema";
 import { encryptSecretValue } from "@/lib/server/secret-crypto";
-import { mapPostgresSettings, mutateAuthDb, readAuthDb, readPostgresAnnouncementsPage, readPostgresAuthSettings, readPostgresCdkListData, upsertPostgresSystemChannels } from "./store-repository";
+import { mapPostgresSettings, mutateAuthDb, readAuthDb, readPostgresAuthSettings, readPostgresCdkListData, upsertPostgresSystemChannels } from "./store-repository";
 
 const originalEncryptionKey = process.env.VOZEB_PRO_ENCRYPTION_KEY;
 const originalDatabaseProvider = process.env.VOZEB_PRO_DATABASE_PROVIDER;
@@ -133,29 +133,5 @@ describe("PostgreSQL auth read paths", () => {
         expect(data.stats).toEqual({ total: 1, redeemed: 1, unused: 0, expired: 0 });
         expect(query).toHaveBeenCalledTimes(3);
         expect(query.mock.calls.map(([statement]) => String(statement))).toEqual([expect.stringContaining("count(*) AS total"), expect.stringContaining("count(*) FILTER"), expect.stringContaining("LIMIT $5 OFFSET $6")]);
-    });
-
-    it("filters and paginates announcements inside PostgreSQL", async () => {
-        const visibleAt = "2026-07-27T00:00:00.000Z";
-        const { executor, query } = mockExecutor([
-            [
-                {
-                    id: "announcement-one",
-                    title: "公告",
-                    content: "内容",
-                    enabled: true,
-                    popup_home: false,
-                    popup_after_login: false,
-                    created_at: "2026-01-01T00:00:00.000Z",
-                    updated_at: "2026-01-01T00:00:00.000Z",
-                    total_count: "47",
-                },
-            ],
-        ]);
-
-        const page = await readPostgresAnnouncementsPage({ includeDisabled: false, page: 3, pageSize: 12, visibleAt }, executor);
-
-        expect(page).toMatchObject({ items: [{ id: "announcement-one", title: "公告" }], total: 47, page: 3, pageSize: 12 });
-        expect(query).toHaveBeenCalledWith(expect.stringMatching(/count\(\*\) OVER\(\)[\s\S]*WHERE[\s\S]*enabled = true[\s\S]*starts_at[\s\S]*ends_at[\s\S]*LIMIT \$3 OFFSET \$4/), [false, visibleAt, 12, 24]);
     });
 });

@@ -1,6 +1,5 @@
 import { encryptAuthDbSecretsForStorage } from "@/lib/auth/store-normalizers";
 import {
-    insertPostgresAnnouncements,
     insertPostgresCdkCodes,
     insertPostgresDailyPlanPointWallets,
     insertPostgresEmailCodes,
@@ -47,7 +46,6 @@ export async function restorePostgresAuthSnapshot(client: QueryExecutor, db: Aut
         normalized.dailyPlanPointWallets.filter((wallet) => userIds.has(wallet.userId)),
     );
     await insertPostgresCdkCodes(client, cdkCodes);
-    await insertPostgresAnnouncements(client, normalized.announcements);
 }
 
 async function syncPostgresUserAccountIdSequence(db: QueryExecutor) {

@@ -22,13 +22,11 @@ describe("file auth database normalization", () => {
                 createdAt,
             })),
             emailCodes: [{ id: "expired", purpose: "register", email: "expired@example.com", codeHash: "hash", createdAt, expiresAt: createdAt }],
-            announcements: Array.from({ length: 201 }, (_, index) => ({ id: `announcement-${index}`, title: `公告 ${index}`, content: "内容", enabled: true, popupHome: false, popupAfterLogin: false, createdAt, updatedAt: createdAt })),
         });
 
         expect(normalized.sessions).toHaveLength(1);
         expect(normalized.emailCodes).toHaveLength(1);
         expect(normalized.quotaUsage).toHaveLength(1);
         expect(normalized.pointRecords).toHaveLength(10_001);
-        expect(normalized.announcements).toHaveLength(201);
     });
 });

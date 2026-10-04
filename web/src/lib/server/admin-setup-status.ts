@@ -1,7 +1,5 @@
 import { getAuthSettings, getPublicUserSummary, type AuthSettings, type PublicUserSummary } from "@/lib/auth/store";
-import { listBillingProducts } from "@/lib/server/billing-service";
-import { getDatabaseProvider, getPostgresConnectionString, type BillingProductRecord } from "@/lib/server/database";
-import { getPaymentConfigSummary, hasPaymentProductionSecret } from "@/lib/server/payment-config-status";
+import { getDatabaseProvider, getPostgresConnectionString } from "@/lib/server/database";
 import { channelConnectionReady } from "@/lib/channel-protocol-registry";
 
 export type AdminSetupStepStatus = "done" | "attention" | "pending";
@@ -37,32 +35,23 @@ export type AdminSetupSummary = {
 };
 
 export async function getAdminSetupSummary(input?: { settings?: AuthSettings; userSummary?: PublicUserSummary }) {
-    const [settings, userSummary, products, paymentConfig] = await Promise.all([
+    const [settings, userSummary] = await Promise.all([
         input?.settings ? Promise.resolve(input.settings) : getAuthSettings(),
         input?.userSummary ? Promise.resolve(input.userSummary) : getPublicUserSummary(),
-        getBillingProductsSafe(),
-        getPaymentConfigSummary(),
     ]);
-    return buildAdminSetupSummary({ settings, userSummary, products, paymentConfig });
+    return buildAdminSetupSummary({ settings, userSummary });
 }
 
-function buildAdminSetupSummary(input: { settings: AuthSettings; userSummary: PublicUserSummary; products?: BillingProductRecord[]; paymentConfig: Awaited<ReturnType<typeof getPaymentConfigSummary>> }): AdminSetupSummary {
+function buildAdminSetupSummary(input: { settings: AuthSettings; userSummary: PublicUserSummary }): AdminSetupSummary {
     const { settings, userSummary } = input;
-    const products = input.products || [];
     const admins = userSummary.activeAdmins;
     const enabledChannels = settings.systemChannels.filter((channel) => channel.enabled && channelConnectionReady(channel)).length;
-    const enabledProducts = products.filter((product) => product.enabled).length;
-    const enabledPlanProducts = countEnabledPlanProducts(products);
-    const paymentConfig = input.paymentConfig;
-    const paymentProviders = paymentConfig.providers.filter((provider) => provider.ready && provider.id !== "manual").map((provider) => provider.name);
     const databaseProvider = getDatabaseProvider();
     const hasPostgres = databaseProvider === "postgres" && Boolean(getPostgresConnectionString());
-    const siteReady = Boolean(settings.site.title.trim() && settings.site.logoUrl.trim() && settings.site.seoTitle.trim() && settings.site.seoDescription.trim() && settings.site.termsUrl.trim() && settings.site.privacyUrl.trim());
+    const siteReady = Boolean(settings.site.title.trim() && settings.site.logoUrl.trim());
     const channelModels = new Set(settings.systemChannels.flatMap((channel) => channel.models).filter(Boolean));
     const channelReady = enabledChannels > 0 && channelModels.size > 0;
     const defaultModelsReady = Boolean(settings.defaultModels.textModel || settings.defaultModels.imageModel || settings.defaultModels.videoModel);
-    const enabledPaidPlanCount = countEnabledPaidEntitlementPlans(settings.entitlements.plans, settings.entitlements.defaultPlanId);
-    const plansReady = settings.entitlements.enabled && enabledPaidPlanCount > 0 && enabledPlanProducts > 0;
     const mailReady = Boolean(settings.mail.host.trim() && settings.mail.username.trim() && settings.mail.password.trim());
     const encryptionReady = hasProductionSecret(process.env.VOZEB_PRO_ENCRYPTION_KEY);
 
@@ -73,11 +62,11 @@ function buildAdminSetupSummary(input: { settings: AuthSettings; userSummary: Pu
             eyebrow: "品牌与公开信息",
             status: siteReady ? "done" : "pending",
             statusLabel: siteReady ? "已完成" : "待完善",
-            description: siteReady ? "站点名称、Logo、SEO 和协议入口已经具备基础发布条件。" : "补齐站点名称、Logo、SEO 摘要、服务条款和隐私政策入口。",
+            description: siteReady ? "站点名称和 Logo 已具备基础发布条件。" : "补齐站点名称和 Logo。",
             href: "/admin?section=site",
             actionLabel: "配置站点",
             accent: "blue",
-            facts: [settings.site.title || "未设置站点名", settings.site.logoUrl ? "Logo 已设置" : "Logo 未设置", settings.site.seoDescription ? "SEO 摘要已填写" : "SEO 摘要未填写"],
+            facts: [settings.site.title || "未设置站点名", settings.site.logoUrl ? "Logo 已设置" : "Logo 未设置", settings.site.iconUrl ? "浏览器图标已设置" : "浏览器图标未设置"],
         },
         {
             id: "models",
@@ -90,34 +79,6 @@ function buildAdminSetupSummary(input: { settings: AuthSettings; userSummary: Pu
             actionLabel: "配置模型",
             accent: "emerald",
             facts: [`已启用 ${enabledChannels} 个渠道`, `模型 ${channelModels.size} 个`, defaultModelsReady ? "默认模型已选择" : "默认模型未选择"],
-        },
-        {
-            id: "plans",
-            title: "套餐与积分规则",
-            eyebrow: "商业权益",
-            status: plansReady ? "done" : enabledPaidPlanCount > 0 || enabledPlanProducts > 0 || settings.freeDailyPointsEnabled ? "attention" : "pending",
-            statusLabel: plansReady ? "已启用" : "待启用",
-            description: plansReady ? "每日赠送积分、付费套餐权益和在售商品已经串起来。" : "确认每日赠送积分规则，并启用付费套餐权益和对应的在售商品。",
-            href: "/admin?section=products",
-            actionLabel: "配置套餐",
-            accent: "violet",
-            facts: [settings.freeDailyPointsEnabled ? `每日赠送积分 ${formatPoints(settings.freeDailyPoints)}` : "每日赠送积分未开启", `付费权益 ${enabledPaidPlanCount} 个`, `在售套餐 ${enabledPlanProducts} 个`],
-        },
-        {
-            id: "payments",
-            title: "支付渠道",
-            eyebrow: "收款闭环",
-            status: paymentProviders.length > 0 ? "done" : "attention",
-            statusLabel: paymentProviders.length > 0 ? "已配置" : "人工确认可用",
-            description: paymentProviders.length > 0 ? "真实支付渠道已具备下单和回调接入条件。" : "当前可先用后台人工确认收款；正式运营前建议配置 Stripe、支付宝、微信支付或 PayPly。",
-            href: "/admin?section=payments",
-            actionLabel: "查看支付",
-            accent: "amber",
-            facts: [
-                `真实渠道 ${paymentProviders.length} 个`,
-                paymentProviders.length ? paymentProviders.join(" / ") : "Stripe / 支付宝 / 微信 / PayPly 待配置",
-                hasPaymentProductionSecret(process.env.VOZEB_PRO_PAYMENT_WEBHOOK_SECRET) ? "通用回调密钥已设置" : "通用回调密钥待设置",
-            ],
         },
         {
             id: "mail",
@@ -155,32 +116,11 @@ function buildAdminSetupSummary(input: { settings: AuthSettings; userSummary: Pu
         totalChannels: settings.systemChannels.length,
         enabledChannels,
         modelCount: channelModels.size,
-        enabledProducts,
-        enabledPlanProducts,
+        enabledProducts: 0,
+        enabledPlanProducts: 0,
         databaseProvider,
         steps,
     };
-}
-
-export function countEnabledPlanProducts(products: BillingProductRecord[]) {
-    return products.filter((product) => product.enabled && product.productKind === "plan").length;
-}
-
-export function countEnabledPaidEntitlementPlans(plans: AuthSettings["entitlements"]["plans"], defaultPlanId: string) {
-    return plans.filter((plan) => plan.enabled && plan.id !== defaultPlanId).length;
-}
-
-function formatPoints(value: number) {
-    const points = Number(value);
-    return Number.isFinite(points) ? points.toLocaleString("zh-CN", { maximumFractionDigits: 2 }) : "0";
-}
-
-async function getBillingProductsSafe() {
-    try {
-        return await listBillingProducts(true);
-    } catch {
-        return [];
-    }
 }
 
 function hasProductionSecret(value: string | undefined) {

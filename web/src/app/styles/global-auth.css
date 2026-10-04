@@ -129,7 +129,7 @@
 
     .landing-auth-brand-logo {
         height: 44px;
-        width: 44px;
+        width: auto;
     }
 
     .landing-auth-modal-form {

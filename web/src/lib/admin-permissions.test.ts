@@ -1,17 +1,17 @@
 import { describe, expect, it } from "vitest";
 
-import { ADMIN_PERMISSION_PRESETS, ALL_ADMIN_PERMISSIONS, adminPermissionSummary, allowedAdminBillingTabs, hasAdminPermission, hasAnyAdminPermission, isFullAdminPermissions, normalizeAdminPermissions, resolveAdminBillingTab } from "./admin-permissions";
+import { ADMIN_PERMISSION_PRESETS, ALL_ADMIN_PERMISSIONS, adminPermissionSummary, hasAdminPermission, hasAnyAdminPermission, isFullAdminPermissions, normalizeAdminPermissions } from "./admin-permissions";
 
 describe("administrator permissions", () => {
     it("normalizes known permissions in registry order", () => {
-        expect(normalizeAdminPermissions(["billing.manage", "unknown", "users.read", "billing.manage"])).toEqual(["users.read", "billing.manage"]);
+        expect(normalizeAdminPermissions(["upstream.manage", "unknown", "users.manage", "upstream.manage"])).toEqual(["users.manage", "upstream.manage"]);
     });
 
     it("requires an active administrator with an explicit permission", () => {
-        expect(hasAdminPermission({ role: "admin", status: "active", adminPermissions: ["users.read"] }, "users.read")).toBe(true);
-        expect(hasAdminPermission({ role: "admin", status: "active" }, "users.read")).toBe(false);
-        expect(hasAdminPermission({ role: "admin", status: "disabled", adminPermissions: ["users.read"] }, "users.read")).toBe(false);
-        expect(hasAdminPermission({ role: "user", status: "active", adminPermissions: ["users.read"] }, "users.read")).toBe(false);
+        expect(hasAdminPermission({ role: "admin", status: "active", adminPermissions: ["users.manage"] }, "users.manage")).toBe(true);
+        expect(hasAdminPermission({ role: "admin", status: "active" }, "users.manage")).toBe(false);
+        expect(hasAdminPermission({ role: "admin", status: "disabled", adminPermissions: ["users.manage"] }, "users.manage")).toBe(false);
+        expect(hasAdminPermission({ role: "user", status: "active", adminPermissions: ["users.manage"] }, "users.manage")).toBe(false);
     });
 
     it("keeps presets inside the declared permission registry", () => {
@@ -21,18 +21,8 @@ describe("administrator permissions", () => {
         expect(ALL_ADMIN_PERMISSIONS.length).toBeGreaterThan(0);
     });
 
-    it("limits financial workspace tabs to the current duties", () => {
-        const finance = { role: "admin", status: "active", adminPermissions: ["billing.read"] };
-        const commerce = { role: "admin", status: "active", adminPermissions: ["commerce.manage"] };
-
-        expect(allowedAdminBillingTabs(finance)).toEqual(["orders"]);
-        expect(resolveAdminBillingTab(finance, "payments")).toBe("orders");
-        expect(allowedAdminBillingTabs(commerce)).toEqual(["products", "promotions", "coupons"]);
-        expect(resolveAdminBillingTab(commerce, "orders")).toBe("products");
-    });
-
     it("uses a preset label or a precise custom responsibility count", () => {
-        expect(adminPermissionSummary(["users.read", "billing.read", "billing.manage"])).toBe("财务");
-        expect(adminPermissionSummary(["users.read", "audit.read"])).toBe("2 项职责");
+        expect(adminPermissionSummary(["system.manage", "audit.read"])).toBe("系统运维");
+        expect(adminPermissionSummary(["users.manage", "audit.read"])).toBe("2 项职责");
     });
 });

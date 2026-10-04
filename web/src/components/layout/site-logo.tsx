@@ -15,8 +15,9 @@ export function SiteLogo({ logoUrl, className }: { logoUrl: string; className?: 
     return (
         <span
             aria-hidden="true"
-            className={cn("shrink-0 bg-stone-950 dark:bg-white", className)}
+            className={cn("inline-block shrink-0 bg-stone-950 dark:bg-white", className)}
             style={{
+                aspectRatio: "958.7 / 188.4",
                 mask: "url(/logo.svg) center / contain no-repeat",
                 WebkitMask: "url(/logo.svg) center / contain no-repeat",
             }}

@@ -1,24 +1,26 @@
-export type ReleaseInfo = {
+export interface ChangelogRelease {
     version: string;
-    date: string;
-    items: { type: string; content: string }[];
-};
+    date?: string;
+    changes: string[];
+}
 
-export function parseChangelog(content: string): ReleaseInfo[] {
-    return content
-        .split(/^## /m)
-        .slice(1)
-        .map((block) => {
-            const [title = "", ...lines] = block.trim().split("\n");
-            const [, version = title.trim(), date = ""] = title.match(/^(.+?)(?:\s+-\s+(.+))?$/) || [];
-            return {
-                version: version.trim(),
-                date: date.trim(),
-                items: lines
-                    .map((line) => line.trim().match(/^[+-]\s+\[(.+?)\]\s+(.+)$/))
-                    .filter((match): match is RegExpMatchArray => Boolean(match))
-                    .map((match) => ({ type: match[1], content: match[2] })),
-            };
-        })
-        .filter((release) => release.items.length);
+export function parseChangelog(markdown: string): ChangelogRelease[] {
+    const releases: ChangelogRelease[] = [];
+    const lines = markdown.split("\n");
+    let current: ChangelogRelease | null = null;
+
+    for (const line of lines) {
+        const versionMatch = line.match(/^##\s+(v[\d.]+(?:\s*-\s*\d{4}-\d{2}-\d{2})?)/);
+        if (versionMatch) {
+            if (current) releases.push(current);
+            const parts = versionMatch[1].split(/\s*-\s*/);
+            current = { version: parts[0].trim(), date: parts[1]?.trim(), changes: [] };
+            continue;
+        }
+        if (current && line.startsWith("- ")) {
+            current.changes.push(line.slice(2).trim());
+        }
+    }
+    if (current) releases.push(current);
+    return releases;
 }

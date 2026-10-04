@@ -25,20 +25,16 @@ export async function generateMetadata(): Promise<Metadata> {
     const site = await getPublicSiteSettings();
     const base = siteMetadataBase();
     const logoUrl = absoluteSiteUrl(site.logoUrl || "/logo.svg", base);
-    const title = site.seoTitle || site.title;
+    const title = site.title;
     return {
         metadataBase: base,
         title,
-        description: site.seoDescription,
+        description: site.title,
         alternates: { canonical: "/" },
-        keywords: site.seoKeywords
-            .split(/[,，]/)
-            .map((keyword) => keyword.trim())
-            .filter(Boolean),
         openGraph: {
             type: "website",
             title,
-            description: site.seoDescription,
+            description: site.title,
             siteName: site.title,
             images: logoUrl ? [{ url: logoUrl }] : undefined,
             locale: "zh_CN",
@@ -46,7 +42,7 @@ export async function generateMetadata(): Promise<Metadata> {
         twitter: {
             card: "summary",
             title,
-            description: site.seoDescription,
+            description: site.title,
             images: logoUrl ? [logoUrl] : undefined,
         },
     };
@@ -64,7 +60,7 @@ export default async function RootLayout({
     const websiteUrl = absoluteSiteUrl("/", base);
     const websiteStructuredData = buildWebsiteStructuredData({
         name: site.title,
-        description: site.seoDescription,
+        description: site.title,
         url: websiteUrl,
         logoUrl: absoluteSiteUrl(site.logoUrl || "/logo.svg", base),
     });

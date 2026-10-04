@@ -5,8 +5,8 @@ import { describe, expect, it } from "vitest";
 
 import { DEFAULT_SITE_SETTINGS } from "@/lib/auth/store";
 
-describe("default infinite-evolution brand assets", () => {
-    it("uses the built-in infinite-evolution logo for every default brand entry", () => {
+describe("default Nodeter brand assets", () => {
+    it("uses the built-in Nodeter logo for every default brand entry", () => {
         expect(DEFAULT_SITE_SETTINGS.logoUrl).toBe("/logo.svg");
         expect(DEFAULT_SITE_SETTINGS.iconUrl).toBe("/icon.svg");
     });

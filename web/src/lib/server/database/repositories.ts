@@ -2,16 +2,9 @@ import { postgresQuery, type QueryExecutor } from "@/lib/server/database/postgre
 import { AuditLogsRepository } from "./audit-log-repository";
 import { BillingOrderRepository } from "./billing-order-repository";
 import { BillingPaymentRepository } from "./billing-payment-repository";
-import { BillingRefundRepository } from "./billing-refund-repository";
-import { BillingProductRepository } from "./billing-product-repository";
 import { CouponRepository } from "./coupon-repository";
 import { PointsWalletRepository } from "./points-wallet-repository";
-import { PromotionRepository } from "./promotion-repository";
-import { ReferralRepository } from "./referral-repository";
-import { WorkPublicationRepository } from "./work-publication-repository";
-import { WorkGovernanceRepository } from "./work-governance-repository";
-import { WorkCommunityRepository } from "./work-community-repository";
-import { AnnouncementsRepository, GenerationLogsRepository, PromptsRepository } from "./content-repository";
+import { GenerationLogsRepository, PromptsRepository } from "./content-repository";
 import { CdkRepository, EmailCodesRepository, PointsRepository, SessionsRepository, UsersRepository } from "./user-repository";
 import type { AppSettingsRecord, EntitlementPlanRecord, JsonValue, SystemModelChannelRecord } from "./repository-shared";
 import { isoValue, jsonParam, jsonValue, numberValue, optionalIso, optionalJson, optionalString, stringValue } from "./repository-shared";
@@ -20,49 +13,9 @@ export type {
     AuthenticatedUserRecord,
     BillingOrderRecord,
     BillingOrderStatus,
-    BillingProductRecord,
-    BillingReconciliationRowRecord,
-    BillingReconciliationRunRecord,
     CouponRedemptionRecord,
     CouponTemplateRecord,
     JsonValue,
-    PaymentTransactionRecord,
-    PromotionCampaignRecord,
-    PromotionProductRecord,
-    ReferralCodeRecord,
-    ReferralProgramRecord,
-    ReferralRelationshipRecord,
-    ReferralRewardRecord,
-    ReferralRewardStatus,
-    ReferralRiskStatus,
-    PublishedWorkAssetRecord,
-    PublishedWorkAuthorDisplay,
-    PublishedWorkLifecycleStatus,
-    PublishedWorkModerationStatus,
-    PublishedWorkRecord,
-    PublishedWorkSourceType,
-    PublishedWorkSummaryRecord,
-    PublishedWorkVersionRecord,
-    PublishedWorkVisibility,
-    PublishedWorkCaseRecord,
-    PublishedWorkCaseStatus,
-    PublishedWorkCaseSummaryRecord,
-    PublishedWorkCaseType,
-    PublishedGalleryItemRecord,
-    PublishedWorkRankingRecord,
-    UserNotificationRecord,
-    UserNotificationType,
-    WorkCommunityRankingCursor,
-    WorkCommunityRankingWindow,
-    WorkCommunityRelationResultRecord,
-    WorkCommunitySummaryRecord,
-    UserFollowResultRecord,
-    FollowedUserRecord,
-    CommunityUserRecord,
-    LikedPublishedWorkRecord,
-    PublicCreatorProfileRecord,
-    PublicCreatorWorkCursor,
-    UserCommunitySummaryRecord,
     UserCouponListItemRecord,
     UserCouponRecord,
     UserSummaryRecord,
@@ -70,12 +23,9 @@ export type {
 } from "./repository-shared";
 
 export function createPostgresRepositories(executor: QueryExecutor = { query: postgresQuery }) {
-    const billingProduct = new BillingProductRepository(executor);
     const billingOrder = new BillingOrderRepository(executor);
     const pointsWallet = new PointsWalletRepository(executor);
     const billingPayment = new BillingPaymentRepository(executor);
-    const billingRefund = new BillingRefundRepository(executor);
-    const promotion = new PromotionRepository(executor);
     const coupons = new CouponRepository(executor);
 
     return {
@@ -86,60 +36,15 @@ export function createPostgresRepositories(executor: QueryExecutor = { query: po
         points: new PointsRepository(executor),
         pointsWallet,
         cdk: new CdkRepository(executor),
-        announcements: new AnnouncementsRepository(executor),
         prompts: new PromptsRepository(executor),
         generationLogs: new GenerationLogsRepository(executor),
         billing: {
-            listProducts: billingProduct.listProducts.bind(billingProduct),
-            getProductById: billingProduct.getProductById.bind(billingProduct),
-            getProductsByIds: billingProduct.getProductsByIds.bind(billingProduct),
-            upsertProduct: billingProduct.upsertProduct.bind(billingProduct),
-            updateProduct: billingProduct.updateProduct.bind(billingProduct),
-            deleteProductIfUnused: billingProduct.deleteProductIfUnused.bind(billingProduct),
-            createOrder: billingOrder.createOrder.bind(billingOrder),
-            getOrderById: billingOrder.getOrderById.bind(billingOrder),
-            getOrderByOrderNo: billingOrder.getOrderByOrderNo.bind(billingOrder),
-            getOrderByProviderIdentifiers: billingOrder.getOrderByProviderIdentifiers.bind(billingOrder),
             listOrders: billingOrder.listOrders.bind(billingOrder),
-            getSummary: billingOrder.getSummary.bind(billingOrder),
-            expirePendingOrders: billingOrder.expirePendingOrders.bind(billingOrder),
-            updateOrder: billingOrder.updateOrder.bind(billingOrder),
-            upsertPayment: billingPayment.upsertPayment.bind(billingPayment),
-            updatePaymentState: billingPayment.updatePaymentState.bind(billingPayment),
             listPayments: billingPayment.listPayments.bind(billingPayment),
-            listPaymentsByOrderId: billingPayment.listPaymentsByOrderId.bind(billingPayment),
-            findOrderPayment: billingPayment.findOrderPayment.bind(billingPayment),
-            lockPaymentIdentity: billingPayment.lockPaymentIdentity.bind(billingPayment),
-            getPaymentByProviderIdentifiers: billingPayment.getPaymentByProviderIdentifiers.bind(billingPayment),
-            getPaymentByProviderIdentifier: billingPayment.getPaymentByProviderIdentifier.bind(billingPayment),
-            createReconciliationRun: billingPayment.createReconciliationRun.bind(billingPayment),
-            getReconciliationRunByFileHash: billingPayment.getReconciliationRunByFileHash.bind(billingPayment),
-            listReconciliationRuns: billingPayment.listReconciliationRuns.bind(billingPayment),
-            getReconciliationRun: billingPayment.getReconciliationRun.bind(billingPayment),
-            listReconciliationRows: billingPayment.listReconciliationRows.bind(billingPayment),
-            createPlanAssignment: billingPayment.createPlanAssignment.bind(billingPayment),
             getActivePlanAssignment: billingPayment.getActivePlanAssignment.bind(billingPayment),
-            getPlanAssignmentBySource: billingPayment.getPlanAssignmentBySource.bind(billingPayment),
             listPlanAssignments: billingPayment.listPlanAssignments.bind(billingPayment),
-            updatePlanAssignment: billingPayment.updatePlanAssignment.bind(billingPayment),
-            upsertProviderEvent: billingPayment.upsertProviderEvent.bind(billingPayment),
-            getProviderEventByProviderEventId: billingPayment.getProviderEventByProviderEventId.bind(billingPayment),
-            claimProviderEvent: billingPayment.claimProviderEvent.bind(billingPayment),
-            markProviderEventProcessed: billingPayment.markProviderEventProcessed.bind(billingPayment),
-            markProviderEventConflict: billingPayment.markProviderEventConflict.bind(billingPayment),
-            releaseProviderEvent: billingPayment.releaseProviderEvent.bind(billingPayment),
-            getRefundJobByOrderId: billingRefund.getByOrderId.bind(billingRefund),
-            upsertRefundJob: billingRefund.upsert.bind(billingRefund),
-            claimDueRefundJobs: billingRefund.claimDue.bind(billingRefund),
-            checkpointRefundJob: billingRefund.checkpoint.bind(billingRefund),
-            releaseRefundJob: billingRefund.release.bind(billingRefund),
         },
-        promotions: promotion,
         coupons,
-        referrals: new ReferralRepository(executor),
-        workPublications: new WorkPublicationRepository(executor),
-        workGovernance: new WorkGovernanceRepository(executor),
-        workCommunity: new WorkCommunityRepository(executor),
         auditLogs: new AuditLogsRepository(executor),
     };
 }
